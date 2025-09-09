@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOOST Schema Validator</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌲 BOOST Schema Validator</h1>
+            <p>Test and validate BOOST entity schemas with real-time feedback</p>
+        </header>
+
+        <main>
+            <div class="validator-section">
+                <div class="entity-selector">
+                    <label for="entitySelect">Select Entity:</label>
+                    <select id="entitySelect">
+                        <option value="">Loading entities...</option>
+                    </select>
+                    <div class="button-group">
+                        <button id="loadExampleBtn" class="btn btn-secondary" disabled>Load Example</button>
+                        <button id="loadSchemaBtn" class="btn btn-secondary" disabled>View Schema</button>
+                    </div>
+                </div>
+
+                <div class="editor-section">
+                    <div class="editor-header">
+                        <h3>Entity JSON Data</h3>
+                        <div class="editor-controls">
+                            <button id="validateBtn" class="btn btn-primary" disabled>Validate</button>
+                            <button id="clearBtn" class="btn btn-secondary">Clear</button>
+                            <button id="formatBtn" class="btn btn-secondary">Format JSON</button>
+                        </div>
+                    </div>
+                    <textarea id="jsonEditor" placeholder="Select an entity and load an example, or paste your JSON data here..."></textarea>
+                </div>
+
+                <div class="results-section">
+                    <div class="results-header">
+                        <h3>Validation Results</h3>
+                        <div id="validationStatus" class="status-indicator">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Ready to validate</span>
+                        </div>
+                    </div>
+                    <div id="resultsContainer" class="results-container">
+                        <div class="placeholder">
+                            <p>🧪 Select an entity and click "Validate" to see results</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Modal -->
+            <div id="schemaModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 id="schemaModalTitle">Entity Schema</h3>
+                        <span class="modal-close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <pre id="schemaContent"></pre>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>BOOST (Biomass Open Origin Standard for Tracking) - Schema Validation Tool</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
