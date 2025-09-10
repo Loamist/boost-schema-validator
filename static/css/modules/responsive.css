@@ -1,0 +1,71 @@
+/* Responsive Design - Mobile and Tablet Adaptations */
+
+/* Mobile Responsive */
+@media (max-width: 968px) {
+    .validator-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .button-group {
+        justify-content: center;
+    }
+    
+    .editor-controls {
+        justify-content: center;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .field-table {
+        font-size: 12px;
+    }
+    
+    .field-table th,
+    .field-table td {
+        padding: 8px 6px;
+    }
+    
+    .field-name {
+        min-width: 150px;
+    }
+    
+    .field-value {
+        max-width: 200px;
+    }
+    
+    .field-errors {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    .editor-section, .results-section {
+        margin-bottom: 20px;
+    }
+    
+    #jsonEditor {
+        height: 300px;
+    }
+    
+    .results-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+}

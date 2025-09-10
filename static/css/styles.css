@@ -1,0 +1,9 @@
+/* BOOST Schema Validator - Main Stylesheet */
+/* Imports all modular CSS files in the correct order */
+
+@import url('modules/base.css');
+@import url('modules/components.css');
+@import url('modules/results.css');
+@import url('modules/field-table.css');
+@import url('modules/modal.css');
+@import url('modules/responsive.css');

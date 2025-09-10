@@ -1,0 +1,214 @@
+/* Field Table - Table View with Error Highlighting */
+
+/* Field Table Container */
+.field-table-container {
+    padding: 25px;
+    min-height: 300px;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.table-header h4 {
+    color: #2d5a27;
+    font-weight: 600;
+    margin: 0;
+}
+
+.table-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Field Table */
+.field-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.field-table thead th {
+    background: #2d5a27;
+    color: white;
+    padding: 15px 12px;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+
+.field-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.3s;
+}
+
+.field-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.field-table tbody tr.error-row {
+    background-color: #fff5f5;
+    border-left: 4px solid #dc3545;
+}
+
+.field-table tbody tr.error-row:hover {
+    background-color: #ffe6e6;
+}
+
+.field-table td {
+    padding: 12px;
+    vertical-align: top;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Field Status Column */
+.field-status {
+    text-align: center;
+    width: 60px;
+}
+
+.status-icon {
+    font-size: 16px;
+    display: inline-block;
+}
+
+.status-icon.valid {
+    color: #28a745;
+}
+
+.status-icon.error {
+    color: #dc3545;
+}
+
+.status-icon.required {
+    color: #ffc107;
+}
+
+/* Field Name Column */
+.field-name {
+    font-weight: 600;
+    color: #2d5a27;
+    min-width: 200px;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+}
+
+.field-name.required::after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* Field Value Column */
+.field-value {
+    max-width: 300px;
+    word-break: break-word;
+}
+
+.field-value.complex {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 12px;
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 4px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.field-value.string {
+    color: #198754;
+}
+
+.field-value.number {
+    color: #0d6efd;
+    font-weight: 500;
+}
+
+.field-value.boolean {
+    color: #6f42c1;
+    font-weight: 500;
+}
+
+.field-value.null {
+    color: #6c757d;
+    font-style: italic;
+}
+
+/* Field Type Column */
+.field-type {
+    color: #6c757d;
+    font-size: 12px;
+    min-width: 80px;
+}
+
+/* Field Error Column */
+.field-errors {
+    max-width: 250px;
+    word-break: break-word;
+}
+
+.error-message {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    font-size: 12px;
+    color: #721c24;
+}
+
+.error-message:last-child {
+    margin-bottom: 0;
+}
+
+/* Table Wrapper */
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.table-placeholder {
+    text-align: center;
+    color: #6c757d;
+    padding: 60px 20px;
+}
+
+.table-placeholder p {
+    font-size: 18px;
+}
+
+/* Field Count Summary */
+.field-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.field-count {
+    color: #495057;
+}
+
+.error-count {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.valid-count {
+    color: #28a745;
+    font-weight: 600;
+}
