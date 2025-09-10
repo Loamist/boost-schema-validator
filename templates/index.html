@@ -41,14 +41,42 @@
                 <div class="results-section">
                     <div class="results-header">
                         <h3>Validation Results</h3>
+                        <div class="results-tabs">
+                            <button id="summaryTab" class="tab-button active">Summary</button>
+                            <button id="tableTab" class="tab-button">Field Table</button>
+                        </div>
                         <div id="validationStatus" class="status-indicator">
                             <span class="status-dot"></span>
                             <span class="status-text">Ready to validate</span>
                         </div>
                     </div>
-                    <div id="resultsContainer" class="results-container">
-                        <div class="placeholder">
-                            <p>🧪 Select an entity and click "Validate" to see results</p>
+                    
+                    <!-- Summary View (existing) -->
+                    <div id="summaryView" class="tab-content active">
+                        <div id="resultsContainer" class="results-container">
+                            <div class="placeholder">
+                                <p>🧪 Select an entity and click "Validate" to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Field Table View (new) -->
+                    <div id="tableView" class="tab-content">
+                        <div class="field-table-container">
+                            <div class="table-header">
+                                <h4>📋 Field Analysis</h4>
+                                <div class="table-controls">
+                                    <label class="filter-checkbox">
+                                        <input type="checkbox" id="showErrorsOnly">
+                                        <span>Show errors only</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="fieldTableContainer" class="table-wrapper">
+                                <div class="table-placeholder">
+                                    <p>📊 Field table will appear after validation</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
