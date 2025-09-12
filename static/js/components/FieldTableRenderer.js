@@ -139,6 +139,223 @@ export class FieldTableRenderer {
     }
 
     /**
+     * Enhanced table rendering with dictionary integration
+     */
+    renderEnhancedTable(validationResult, jsonData, dictionaryData = null) {
+        try {
+            const fields = FieldParser.parseJsonFields(jsonData, '', []);
+            const errorMap = createErrorMap(validationResult.errors || []);
+            const stats = FieldParser.getFieldStats(fields, errorMap);
+            
+            // Sort fields: required fields first, then by importance
+            const sortedFields = this._sortFieldsByPriority(fields, dictionaryData);
+            
+            this.currentFieldData = { fields: sortedFields, errorMap, dictionaryData };
+            
+            const tableRows = sortedFields.map(field => this._renderEnhancedTableRow(field, errorMap, dictionaryData));
+            const summaryHtml = this._renderSummary(stats);
+            const enhancedTableHtml = this._renderEnhancedTable(summaryHtml, tableRows);
+            
+            this.container.innerHTML = enhancedTableHtml;
+        } catch (error) {
+            console.error('Error generating enhanced field table:', error);
+            this.container.innerHTML = `
+                <div class="table-loading">
+                    <p>❌ Could not generate enhanced field table: ${escapeHtml(error.message)}</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Render enhanced table row with dictionary information
+     */
+    _renderEnhancedTableRow(field, errorMap, dictionaryData) {
+        const hasError = errorMap[field.path] && errorMap[field.path].length > 0;
+        const fieldInfo = this._getFieldDictionaryInfo(field.name, dictionaryData);
+        
+        const statusIcon = hasError 
+            ? '<span class="status-icon error">❌</span>'
+            : '<span class="status-icon valid">✅</span>';
+
+        const requiredStatus = fieldInfo.required 
+            ? '<span class="required-badge">Required</span>'
+            : '<span class="optional-badge">Optional</span>';
+
+        const rowClass = hasError ? 'error-row' : '';
+        
+        const fieldErrors = hasError 
+            ? errorMap[field.path].map(error => 
+                `<div class="enhanced-error-message">${escapeHtml(error)}</div>`
+              ).join('')
+            : '';
+
+        const description = this._renderFieldDescription(fieldInfo);
+
+        return `
+            <tr class="${rowClass}" data-field-path="${field.path}">
+                <td class="field-status">${statusIcon}</td>
+                <td class="field-name">${escapeHtml(field.displayName)}</td>
+                <td class="field-required">${requiredStatus}</td>
+                <td class="field-value ${field.valueClass}">${escapeHtml(field.displayValue)}</td>
+                <td class="field-type">${field.type}</td>
+                <td class="field-description">${description}</td>
+                <td class="field-errors">${fieldErrors}</td>
+            </tr>
+        `;
+    }
+
+    /**
+     * Get field information from dictionary data
+     */
+    _getFieldDictionaryInfo(fieldName, dictionaryData) {
+        if (!dictionaryData || !dictionaryData.fields) {
+            return { required: false, description: '', examples: '', type: '' };
+        }
+        
+        // Direct match first
+        if (dictionaryData.fields[fieldName]) {
+            return dictionaryData.fields[fieldName];
+        }
+        
+        // Try partial matches for nested fields
+        const keys = Object.keys(dictionaryData.fields);
+        const partialMatch = keys.find(key => 
+            fieldName.toLowerCase().includes(key.toLowerCase()) ||
+            key.toLowerCase().includes(fieldName.toLowerCase())
+        );
+        
+        if (partialMatch) {
+            return dictionaryData.fields[partialMatch];
+        }
+        
+        return { required: false, description: '', examples: '', type: '' };
+    }
+
+    /**
+     * Render field description with examples
+     */
+    _renderFieldDescription(fieldInfo) {
+        if (!fieldInfo.description && !fieldInfo.examples) {
+            return '<span style="color: #999; font-style: italic;">No description available</span>';
+        }
+        
+        let html = '';
+        
+        if (fieldInfo.description) {
+            html += `<div class="description-text">${escapeHtml(fieldInfo.description)}</div>`;
+        }
+        
+        if (fieldInfo.examples) {
+            html += `
+                <div class="field-examples">
+                    <strong>Examples:</strong> ${escapeHtml(fieldInfo.examples)}
+                </div>
+            `;
+        }
+        
+        return html;
+    }
+
+    /**
+     * Render the enhanced table HTML structure
+     */
+    _renderEnhancedTable(summaryHtml, tableRows) {
+        return `
+            ${summaryHtml}
+            <table class="enhanced-field-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">Status</th>
+                        <th style="width: 180px;">Field Name</th>
+                        <th style="width: 90px;">Required</th>
+                        <th style="width: 160px;">Value</th>
+                        <th style="width: 70px;">Type</th>
+                        <th style="width: 280px;">Description & Examples</th>
+                        <th style="width: 220px;">Validation Errors</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tableRows.join('')}
+                </tbody>
+            </table>
+        `;
+    }
+
+    /**
+     * Sort fields by priority: required first, then by field importance
+     */
+    _sortFieldsByPriority(fields, dictionaryData) {
+        return fields.sort((a, b) => {
+            const aInfo = this._getFieldDictionaryInfo(a.name, dictionaryData);
+            const bInfo = this._getFieldDictionaryInfo(b.name, dictionaryData);
+            
+            // Required fields first
+            if (aInfo.required && !bInfo.required) return -1;
+            if (!aInfo.required && bInfo.required) return 1;
+            
+            // Within each group, sort by field importance
+            const aImportance = this._getFieldImportanceScore(a.name);
+            const bImportance = this._getFieldImportanceScore(b.name);
+            
+            if (aImportance !== bImportance) {
+                return bImportance - aImportance; // Higher importance first
+            }
+            
+            // Finally, sort alphabetically
+            return a.displayName.localeCompare(b.displayName);
+        });
+    }
+
+    /**
+     * Get importance score for a field (higher = more important)
+     */
+    _getFieldImportanceScore(fieldName) {
+        const fieldLower = fieldName.toLowerCase();
+        
+        // Critical BOOST fields
+        if (fieldLower.includes('traceableunitid')) return 100;
+        if (fieldLower.includes('organizationid')) return 95;
+        if (fieldLower.includes('@id')) return 90;
+        if (fieldLower.includes('@type')) return 85;
+        if (fieldLower.includes('uniqueidentifier')) return 80;
+        
+        // Important identification fields
+        if (fieldLower.includes('identificationmethod')) return 75;
+        if (fieldLower.includes('identificationconfidence')) return 70;
+        if (fieldLower.includes('harvester')) return 65;
+        if (fieldLower.includes('operator')) return 60;
+        
+        // Material and geographic fields
+        if (fieldLower.includes('materialtype')) return 55;
+        if (fieldLower.includes('geographic') || fieldLower.includes('location')) return 50;
+        if (fieldLower.includes('unittype')) return 45;
+        if (fieldLower.includes('timestamp') || fieldLower.includes('date')) return 40;
+        
+        // Default importance
+        return 10;
+    }
+
+    /**
+     * Toggle all field descriptions expanded/collapsed
+     */
+    toggleAllDescriptions() {
+        const button = document.getElementById('expandAllBtn');
+        const descriptions = this.container.querySelectorAll('.field-description');
+        
+        const isExpanded = button.textContent.includes('Collapse');
+        
+        descriptions.forEach(desc => {
+            const examples = desc.querySelector('.field-examples');
+            if (examples) {
+                examples.style.display = isExpanded ? 'none' : 'block';
+            }
+        });
+        
+        button.textContent = isExpanded ? 'Expand All Descriptions' : 'Collapse All Descriptions';
+    }
+
+    /**
      * Show placeholder when no data available
      */
     showPlaceholder(message = '📊 Field table will appear after validation') {

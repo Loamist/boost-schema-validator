@@ -7,8 +7,9 @@ Flask backend for testing BOOST entity schemas through a web interface
 import json
 import jsonschema
 import os
+import re
 from pathlib import Path
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, Optional
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 # import json_logic  # Temporarily disabled - will implement business rules later
@@ -57,6 +58,94 @@ class BOOSTWebValidator:
             with open(example_file, 'r') as f:
                 return json.load(f)
         return {}
+    
+    def get_entity_dictionary(self, entity_name: str) -> Dict[str, Any]:
+        """Load and parse entity dictionary file"""
+        entity_dir = ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower() 
+                             for i, c in enumerate(entity_name)])
+        
+        dictionary_file = self.schema_root / entity_dir / f"{entity_dir}_dictionary.md"
+        
+        if not dictionary_file.exists():
+            return {"error": f"Dictionary file not found: {dictionary_file}"}
+        
+        try:
+            with open(dictionary_file, 'r', encoding='utf-8') as f:
+                content = f.read()
+                return self._parse_dictionary_markdown(content)
+        except Exception as e:
+            return {"error": f"Error reading dictionary: {str(e)}"}
+    
+    def _parse_dictionary_markdown(self, content: str) -> Dict[str, Any]:
+        """Parse dictionary markdown into structured data"""
+        lines = content.split('\n')
+        
+        # Extract entity overview
+        overview = ""
+        in_overview = False
+        
+        # Dictionary to store field information
+        fields = {}
+        in_table = False
+        table_headers = []
+        
+        for i, line in enumerate(lines):
+            # Extract overview section
+            if line.strip() == "### Overview":
+                in_overview = True
+                continue
+            elif line.startswith("###") and in_overview:
+                in_overview = False
+            elif in_overview and line.strip():
+                overview += line.strip() + " "
+            
+            # Parse field table
+            if "<table class=\"data\">" in line:
+                in_table = True
+                continue
+            elif "</table>" in line:
+                in_table = False
+                continue
+                
+            if in_table and line.strip().startswith("<th>"):
+                # Extract table headers
+                header_match = re.findall(r'<th>([^<]+)', line)
+                table_headers.extend(header_match)
+                
+            elif in_table and line.strip().startswith("<tr>"):
+                # Start of a field row
+                field_data = []
+                j = i + 1
+                while j < len(lines) and not lines[j].strip().startswith("</tr>"):
+                    if lines[j].strip().startswith("<td>"):
+                        # Extract cell content, handle both simple and complex content
+                        cell_match = re.search(r'<td>([^<]+)', lines[j])
+                        if cell_match:
+                            cell_content = cell_match.group(1).strip()
+                            # Remove markdown backticks from field names
+                            cell_content = cell_content.replace('`', '')
+                            field_data.append(cell_content)
+                    j += 1
+                
+                # Store field information if we have enough data
+                if len(field_data) >= 4:
+                    field_name = field_data[0]
+                    field_type = field_data[1]
+                    is_required = field_data[2].lower() in ['yes', 'required', 'true']
+                    description = field_data[3]
+                    examples = field_data[4] if len(field_data) > 4 else ""
+                    
+                    fields[field_name] = {
+                        "type": field_type,
+                        "required": is_required,
+                        "description": description,
+                        "examples": examples
+                    }
+        
+        return {
+            "overview": overview.strip(),
+            "fields": fields
+        }
     
     def validate_entity(self, entity_name: str, test_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate test data against entity schema"""
@@ -160,6 +249,15 @@ def get_entity_example(entity_name):
     try:
         example = validator.get_entity_example(entity_name)
         return jsonify(example)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+@app.route('/api/entity/<entity_name>/dictionary')
+def get_entity_dictionary(entity_name):
+    """Get dictionary data for a specific entity"""
+    try:
+        dictionary = validator.get_entity_dictionary(entity_name)
+        return jsonify(dictionary)
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 

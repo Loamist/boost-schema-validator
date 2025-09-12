@@ -11,6 +11,7 @@ export class BOOSTValidator {
         this.validationService = new ValidationService();
         this.uiController = new UIController();
         this.fieldTableRenderer = new FieldTableRenderer('fieldTableContainer');
+        this.currentEntityDictionary = null;
         
         this.init();
     }
@@ -53,14 +54,21 @@ export class BOOSTValidator {
             this.uiController.formatJSON();
         });
 
-        // Field table filter
+        // Field table filter - now in the bottom section
         document.getElementById('showErrorsOnly').addEventListener('change', (e) => {
             this.fieldTableRenderer.filterErrorsOnly(e.target.checked);
+        });
+
+        // Expand all descriptions button
+        document.getElementById('expandAllBtn').addEventListener('click', () => {
+            this.fieldTableRenderer.toggleAllDescriptions();
         });
 
         // Editor change detection
         document.getElementById('jsonEditor').addEventListener('input', () => {
             this.uiController.updateValidateButton();
+            // Hide field analysis section when user starts editing
+            this.hideFieldAnalysisSection();
         });
     }
 
@@ -79,8 +87,21 @@ export class BOOSTValidator {
     /**
      * Handle entity selection change
      */
-    handleEntityChange(entityName) {
+    async handleEntityChange(entityName) {
         this.uiController.handleEntityChange(entityName);
+        
+        // Load dictionary data for the new entity
+        if (entityName) {
+            try {
+                this.currentEntityDictionary = await this.validationService.getEntityDictionary(entityName);
+                console.log('Loaded dictionary for', entityName, this.currentEntityDictionary);
+            } catch (error) {
+                console.warn('Could not load dictionary for', entityName, error);
+                this.currentEntityDictionary = null;
+            }
+        } else {
+            this.currentEntityDictionary = null;
+        }
     }
 
     /**
@@ -147,7 +168,7 @@ export class BOOSTValidator {
         } catch (error) {
             this.uiController.showError(error.message);
             this.uiController.setStatus('ready', 'Ready to validate');
-            this.fieldTableRenderer.showPlaceholder('❌ Could not generate field table: Invalid JSON');
+            this.hideFieldAnalysisSection();
         }
     }
 
@@ -158,7 +179,38 @@ export class BOOSTValidator {
         // Update summary view
         this.uiController.displaySummaryResults(result);
         
-        // Update field table view
-        this.fieldTableRenderer.renderFieldTable(testData, result);
+        // Show the enhanced field analysis section
+        this.showFieldAnalysisSection();
+        
+        // Render enhanced table with dictionary data
+        this.fieldTableRenderer.renderEnhancedTable(result, testData, this.currentEntityDictionary);
+    }
+
+    /**
+     * Show the enhanced field analysis section
+     */
+    showFieldAnalysisSection() {
+        const section = document.getElementById('fieldAnalysisSection');
+        if (section) {
+            section.style.display = 'block';
+            
+            // Smooth scroll to the field analysis section
+            setTimeout(() => {
+                section.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 300);
+        }
+    }
+
+    /**
+     * Hide the enhanced field analysis section
+     */
+    hideFieldAnalysisSection() {
+        const section = document.getElementById('fieldAnalysisSection');
+        if (section) {
+            section.style.display = 'none';
+        }
     }
 }

@@ -1,5 +1,5 @@
 /**
- * UIController - Manages UI interactions, tabs, modals, and form controls
+ * UIController - Manages UI interactions, modals, and form controls
  */
 import { escapeHtml } from '../utils/fieldFormatting.js';
 
@@ -13,15 +13,6 @@ export class UIController {
      * Set up all UI event listeners
      */
     setupEventListeners() {
-        // Tab switching
-        document.getElementById('summaryTab').addEventListener('click', () => {
-            this.switchTab('summary');
-        });
-
-        document.getElementById('tableTab').addEventListener('click', () => {
-            this.switchTab('table');
-        });
-
         // Modal close
         document.querySelector('.modal-close').addEventListener('click', () => {
             this.closeModal();
@@ -32,23 +23,6 @@ export class UIController {
                 this.closeModal();
             }
         });
-    }
-
-    /**
-     * Switch between Summary and Field Table tabs
-     */
-    switchTab(tabName) {
-        // Update tab buttons
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.getElementById(tabName + 'Tab').classList.add('active');
-
-        // Update tab content
-        document.querySelectorAll('.tab-content').forEach(content => {
-            content.classList.remove('active');
-        });
-        document.getElementById(tabName + 'View').classList.add('active');
     }
 
     /**
@@ -151,19 +125,25 @@ export class UIController {
      * Clear validation results
      */
     clearResults() {
-        const container = document.getElementById('resultsContainer');
+        const container = document.getElementById('summaryView');
         container.innerHTML = `
             <div class="placeholder">
                 <p>🧪 Select an entity and click "Validate" to see results</p>
             </div>
         `;
+        
+        // Also hide the field analysis section
+        const fieldSection = document.getElementById('fieldAnalysisSection');
+        if (fieldSection) {
+            fieldSection.style.display = 'none';
+        }
     }
 
     /**
      * Display validation results in the summary view
      */
     displaySummaryResults(result) {
-        const container = document.getElementById('resultsContainer');
+        const container = document.getElementById('summaryView');
         
         const resultHtml = `
             <div class="validation-result">
@@ -206,7 +186,7 @@ export class UIController {
      * Show error message in results
      */
     showError(message) {
-        const container = document.getElementById('resultsContainer');
+        const container = document.getElementById('summaryView');
         container.innerHTML = `
             <div class="validation-result">
                 <div class="result-summary error">

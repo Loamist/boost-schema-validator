@@ -61,6 +61,24 @@ export class ValidationService {
     }
 
     /**
+     * Get dictionary data for a specific entity
+     */
+    async getEntityDictionary(entityName) {
+        try {
+            const response = await fetch(`/api/entity/${entityName}/dictionary`);
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error('No dictionary available: ' + data.error);
+            }
+            
+            return data;
+        } catch (error) {
+            throw new Error('Failed to load dictionary: ' + error.message);
+        }
+    }
+
+    /**
      * Validate entity data against schema
      */
     async validateEntity(entityName, testData) {
