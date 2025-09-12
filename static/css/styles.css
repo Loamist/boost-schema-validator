@@ -6,4 +6,8 @@
 @import url('modules/results.css');
 @import url('modules/field-table.css');
 @import url('modules/modal.css');
+@import url('modules/plain-text.css');
+@import url('modules/journey-map.css');
+@import url('modules/map.css');
+@import url('modules/entity-representation.css');
 @import url('modules/responsive.css');

@@ -5,13 +5,18 @@
 import { ValidationService } from './services/ValidationService.js';
 import { UIController } from './components/UIController.js';
 import { FieldTableRenderer } from './components/FieldTableRenderer.js';
+import { PlainTextRenderer } from './components/PlainTextRenderer.js';
+import { JourneyMapRenderer } from './components/JourneyMapRenderer.js';
 
 export class BOOSTValidator {
     constructor() {
         this.validationService = new ValidationService();
         this.uiController = new UIController();
         this.fieldTableRenderer = new FieldTableRenderer('fieldTableContainer');
+        this.plainTextRenderer = new PlainTextRenderer();
+        this.journeyMapRenderer = new JourneyMapRenderer();
         this.currentEntityDictionary = null;
+        this.currentJsonData = null;
         
         this.init();
     }
@@ -64,11 +69,23 @@ export class BOOSTValidator {
             this.fieldTableRenderer.toggleAllDescriptions();
         });
 
+        // Entity representation view toggle buttons
+        document.getElementById('plainTextBtn').addEventListener('click', () => {
+            this.switchToPlainTextRepresentation();
+        });
+
+        document.getElementById('visualJourneyBtn').addEventListener('click', () => {
+            this.switchToVisualJourneyRepresentation();
+        });
+
         // Editor change detection
         document.getElementById('jsonEditor').addEventListener('input', () => {
             this.uiController.updateValidateButton();
-            // Hide field analysis section when user starts editing
+            // Hide analysis sections when user starts editing
             this.hideFieldAnalysisSection();
+            this.hideEntityRepresentationSection();
+            // Update current JSON data
+            this.updateCurrentJsonData();
         });
     }
 
@@ -117,6 +134,7 @@ export class BOOSTValidator {
             const exampleData = await this.validationService.getEntityExample(entityName);
             
             this.uiController.setEditorContent(exampleData);
+            this.updateCurrentJsonData();
             this.uiController.setStatus('ready', 'Example loaded - ready to validate');
             
         } catch (error) {
@@ -179,11 +197,17 @@ export class BOOSTValidator {
         // Update summary view
         this.uiController.displaySummaryResults(result);
         
+        // Show the entity representation section
+        this.showEntityRepresentationSection();
+        
         // Show the enhanced field analysis section
         this.showFieldAnalysisSection();
         
         // Render enhanced table with dictionary data
         this.fieldTableRenderer.renderEnhancedTable(result, testData, this.currentEntityDictionary);
+        
+        // Update entity representation content
+        this.updateEntityRepresentationContent();
     }
 
     /**
@@ -212,5 +236,200 @@ export class BOOSTValidator {
         if (section) {
             section.style.display = 'none';
         }
+    }
+
+    /**
+     * Switch to Plain Text representation
+     */
+    switchToPlainTextRepresentation() {
+        document.getElementById('plainTextRepresentation').style.display = 'block';
+        document.getElementById('visualJourneyRepresentation').style.display = 'none';
+        document.getElementById('plainTextBtn').classList.add('active');
+        document.getElementById('visualJourneyBtn').classList.remove('active');
+        
+        document.getElementById('plainTextRepresentation').classList.add('active');
+        document.getElementById('visualJourneyRepresentation').classList.remove('active');
+    }
+
+    /**
+     * Switch to Visual Journey representation
+     */
+    switchToVisualJourneyRepresentation() {
+        document.getElementById('plainTextRepresentation').style.display = 'none';
+        document.getElementById('visualJourneyRepresentation').style.display = 'block';
+        document.getElementById('plainTextBtn').classList.remove('active');
+        document.getElementById('visualJourneyBtn').classList.add('active');
+        
+        document.getElementById('plainTextRepresentation').classList.remove('active');
+        document.getElementById('visualJourneyRepresentation').classList.add('active');
+    }
+
+    /**
+     * Update current JSON data from editor
+     */
+    updateCurrentJsonData() {
+        try {
+            const editorContent = document.getElementById('jsonEditor').value.trim();
+            if (editorContent) {
+                this.currentJsonData = JSON.parse(editorContent);
+            } else {
+                this.currentJsonData = null;
+            }
+        } catch (error) {
+            // Invalid JSON, keep current data
+            console.warn('Invalid JSON in editor:', error);
+        }
+    }
+
+    /**
+     * Show the entity representation section
+     */
+    showEntityRepresentationSection() {
+        const section = document.getElementById('entityRepresentationSection');
+        if (section) {
+            section.style.display = 'block';
+            
+            // Smooth scroll to the section
+            setTimeout(() => {
+                section.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 300);
+        }
+    }
+
+    /**
+     * Hide the entity representation section
+     */
+    hideEntityRepresentationSection() {
+        const section = document.getElementById('entityRepresentationSection');
+        if (section) {
+            section.style.display = 'none';
+        }
+    }
+
+    /**
+     * Update entity representation content
+     */
+    updateEntityRepresentationContent() {
+        if (!this.currentJsonData) return;
+        
+        const entityName = this.uiController.getCurrentEntity();
+        
+        // Update plain text representation
+        this.updatePlainTextRepresentation();
+        
+        // Update visual journey representation
+        this.updateVisualJourneyRepresentation();
+    }
+
+    /**
+     * Update plain text representation content
+     */
+    updatePlainTextRepresentation() {
+        const container = document.getElementById('plainTextContent');
+        
+        if (!this.currentJsonData) {
+            container.innerHTML = `
+                <div class="placeholder">
+                    <p>📄 Validation results will show human-readable format here</p>
+                </div>
+            `;
+            return;
+        }
+
+        const entityName = this.uiController.getCurrentEntity();
+        const plainText = this.plainTextRenderer.convertToPlainText(this.currentJsonData, entityName);
+        
+        container.innerHTML = `
+            <div class="plain-text-formatted">
+                <h3>${entityName || 'Entity Data'}</h3>
+                <pre>${this.formatPlainTextOutput(plainText)}</pre>
+            </div>
+        `;
+    }
+
+    /**
+     * Update visual journey representation content
+     */
+    updateVisualJourneyRepresentation() {
+        const container = document.getElementById('visualJourneyContent');
+        
+        if (!this.currentJsonData) {
+            container.innerHTML = `
+                <div class="placeholder">
+                    <p>🗺️ Journey map and visual representation will appear here</p>
+                </div>
+            `;
+            return;
+        }
+
+        const entityName = this.uiController.getCurrentEntity();
+        
+        if (this.shouldShowJourneyMap(entityName)) {
+            // Use interactive map for Visual Journey view
+            const journeyMapHtml = this.journeyMapRenderer.renderJourneyMap(this.currentJsonData, true);
+            container.innerHTML = journeyMapHtml;
+        } else {
+            container.innerHTML = `
+                <div class="placeholder">
+                    <p>🗺️ Visual representation not available for ${entityName}</p>
+                    <p style="margin-top: 0.5rem; font-size: 0.9rem;">Journey maps are currently available for TraceableUnit entities.</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Format plain text output with enhanced styling
+     */
+    formatPlainTextOutput(plainText) {
+        return plainText
+            .split('\n')
+            .map(line => {
+                if (!line.trim()) return '';
+                
+                const [key, ...valueParts] = line.split(':');
+                const value = valueParts.join(':').trim();
+                
+                if (key && value) {
+                    let styledValue = this.escapeHtml(value);
+                    
+                    // Apply special styling based on content
+                    if (value.includes('TRU-') || value.includes('GEO-') || value.includes('ORG-')) {
+                        styledValue = `<span class="plain-text-value-id">${styledValue}</span>`;
+                    } else if (value.includes('cubic meters')) {
+                        styledValue = `<span class="plain-text-value-volume">${styledValue}</span>`;
+                    } else if (value.includes('%')) {
+                        styledValue = `<span class="plain-text-value-percentage">${styledValue}</span>`;
+                    } else if (value.toLowerCase() === 'active' || value.toLowerCase() === 'inactive') {
+                        styledValue = `<span class="plain-text-value-status ${value.toLowerCase()}">${styledValue}</span>`;
+                    } else if (value.match(/\d{4}/)) {
+                        styledValue = `<span class="plain-text-value-date">${styledValue}</span>`;
+                    }
+                    
+                    return `<div class="plain-text-field"><strong>${this.escapeHtml(key.trim())}:</strong> <span>${styledValue}</span></div>`;
+                }
+                return this.escapeHtml(line);
+            })
+            .join('\n');
+    }
+
+    /**
+     * Escape HTML characters
+     */
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    /**
+     * Determine if journey map should be shown for this entity
+     */
+    shouldShowJourneyMap(entityName) {
+        const journeyMapEntities = ['TraceableUnit'];
+        return journeyMapEntities.includes(entityName);
     }
 }
