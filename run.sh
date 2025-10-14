@@ -36,8 +36,8 @@ if [ ! -f "docker-compose.yml" ]; then
 fi
 
 # Check if BOOST schema directory exists
-if [ ! -d "../schema" ]; then
-    echo "❌ BOOST schema directory not found at ../schema"
+if [ ! -d "../BOOST/schema" ]; then
+    echo "❌ BOOST schema directory not found at ../BOOST/schema"
     echo "   Make sure you're running this from the boost-validator-frontend directory"
     echo "   within the BOOST-validator-project"
     exit 1

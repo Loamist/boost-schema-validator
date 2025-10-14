@@ -2,6 +2,7 @@
  * Field Formatting Utilities
  * Handles formatting and display of field values and types
  */
+import { formatBoostField } from './boostFormatting.js';
 
 /**
  * Get the display type of a field value
@@ -21,28 +22,9 @@ export function getFieldType(value) {
 /**
  * Format a field value for display in the table
  */
-export function formatFieldValue(value) {
-    if (value === null) return 'null';
-    if (value === undefined) return 'undefined';
-    if (typeof value === 'string') {
-        if (value.length > 100) return value.substring(0, 97) + '...';
-        return `"${value}"`;
-    }
-    if (Array.isArray(value)) {
-        if (value.length === 0) return '[]';
-        if (value.length <= 3) {
-            return JSON.stringify(value);
-        }
-        return `[${value.length} items]`;
-    }
-    if (typeof value === 'object') {
-        const keys = Object.keys(value);
-        if (keys.length <= 3) {
-            return JSON.stringify(value, null, 2);
-        }
-        return `{${keys.length} properties}`;
-    }
-    return String(value);
+export function formatFieldValue(value, fieldName = '') {
+    // Use BOOST-specific formatting for better user experience
+    return formatBoostField(value, fieldName);
 }
 
 /**

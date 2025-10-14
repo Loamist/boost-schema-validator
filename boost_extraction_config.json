@@ -1,0 +1,469 @@
+{
+  "document_types": [
+    {
+      "name": "Database - BOOST TraceableUnit",
+      "key": "database_boost",
+      "role": "primary",
+      "processor": "database",
+      "types_inference_prompt": "*   **Source:** Originates from an Excel file.\n*   **Format & Content:** Consists entirely of structured data, free from any handwritten notes, scanned text, or unstructured information.",
+      "fields": [
+        {
+          "id": "boost-001",
+          "name": "@type",
+          "key": "boost_type",
+          "order": 0,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return exactly `TraceableUnit`. This is a required BOOST field identifying the entity type.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-002",
+          "name": "traceableUnitId",
+          "key": "traceable_unit_id",
+          "order": 1,
+          "type": "string",
+          "visible": true,
+          "prompt": "Take the value from the `Load #` or `Key` field and format it as `TRU-{value}`. For example, if Load # is `12345`, return `TRU-12345`. This must match the pattern: starts with TRU- followed by uppercase letters, numbers, hyphens, or underscores.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-003",
+          "name": "unitType",
+          "key": "unit_type",
+          "order": 2,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `volume_aggregation` for loads from logging operations. This is a BOOST required field with only specific allowed values: individual_log, pile, volume_aggregation, or processed_batch.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-004",
+          "name": "uniqueIdentifier",
+          "key": "unique_identifier",
+          "order": 3,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Load #` field value as-is. This is the primary business identifier for the load.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-005",
+          "name": "identificationMethodId",
+          "key": "identification_method_id",
+          "order": 4,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `IM-TRIP-TICKET-001`. This indicates the load was identified using a trip ticket system.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-006",
+          "name": "identificationConfidence",
+          "key": "identification_confidence",
+          "order": 5,
+          "type": "number",
+          "visible": true,
+          "prompt": "Always return `95` (a number, not a string). This represents 95% confidence in the identification method.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-007",
+          "name": "secondaryIdentifiers - Weight Cert",
+          "key": "secondary_identifier_weight_cert",
+          "order": 6,
+          "type": "object",
+          "visible": true,
+          "prompt": "Create a JSON object with these exact fields: {\"identifierType\": \"manual_id\", \"identifierValue\": \"{value from Weight Cert # field}\", \"confidence\": 95}. If Weight Cert # is empty, return null.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-008",
+          "name": "secondaryIdentifiers - Trip Ticket",
+          "key": "secondary_identifier_trip_ticket",
+          "order": 7,
+          "type": "object",
+          "visible": true,
+          "prompt": "Create a JSON object with these exact fields: {\"identifierType\": \"trip_ticket\", \"identifierValue\": \"{value from Load # field}\", \"confidence\": 100}.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-009",
+          "name": "methodReadinessLevel",
+          "key": "method_readiness_level",
+          "order": 8,
+          "type": "number",
+          "visible": true,
+          "prompt": "Always return `7` (a number). This is the Technology Readiness Level for trip ticket systems on a scale of 1-9.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-010",
+          "name": "totalVolumeM3",
+          "key": "total_volume_m3",
+          "order": 9,
+          "type": "number",
+          "visible": true,
+          "prompt": "Extract the `Ton` field value and convert it to cubic meters using this formula: (Ton_value × 907.185) ÷ 600. Round the result to 2 decimal places. For example, if Ton is 50, calculate: (50 × 907.185) ÷ 600 = 75.60. Return only the number, no units.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-011",
+          "name": "createdTimestamp",
+          "key": "created_timestamp",
+          "order": 10,
+          "type": "date",
+          "visible": true,
+          "prompt": "Extract the `Date` field and convert it to ISO 8601 format. The input format is M/D/YYYY (like 8/15/2025). Convert it to YYYY-MM-DDTHH:MM:SSZ format (like 2025-08-15T00:00:00Z). Always use 00:00:00Z for the time portion since only the date is provided.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-012",
+          "name": "materialTypeId",
+          "key": "material_type_id",
+          "order": 11,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Product` field value exactly as it appears. For example, if Product is 'WF', just return 'WF'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-013",
+          "name": "harvesterId",
+          "key": "harvester_id",
+          "order": 12,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Logger` field value exactly as it appears. For example, if Logger is 'Headrick Logging', just return 'Headrick Logging'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-014",
+          "name": "operatorId",
+          "key": "operator_id",
+          "order": 13,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Trucker` field value exactly as it appears. For example, if Trucker is 'Pacific Hauling', just return 'Pacific Hauling'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-015",
+          "name": "currentGeographicDataId",
+          "key": "current_geographic_data_id",
+          "order": 14,
+          "type": "string",
+          "visible": true,
+          "prompt": "If there's a `Deck #` field, return 'Deck {value}'. Otherwise return 'Alta California Roundwood Co, LLC' as the default destination.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-016",
+          "name": "harvestGeographicDataId",
+          "key": "harvest_geographic_data_id",
+          "order": 15,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Sale` field value exactly as it appears. If Sale field is empty, return null.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-017",
+          "name": "productClassification",
+          "key": "product_classification",
+          "order": 16,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `sawlog` for timber loads from logging operations. This classifies the intended use of the material.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-018",
+          "name": "qualityGrade",
+          "key": "quality_grade",
+          "order": 17,
+          "type": "string",
+          "visible": true,
+          "prompt": "Return `Grade-A` as the default quality grade. In the future, this could be extracted from quality inspection data if available.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-019",
+          "name": "currentStatus",
+          "key": "current_status",
+          "order": 18,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `delivered` since these are completed load records. Other possible values for future use: active, in_transit, processed, retired.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-020",
+          "name": "attachedInformation - Truck",
+          "key": "attached_info_truck",
+          "order": 19,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Truck #` field and format as 'Truck #{value}'. For example, if Truck # is '123', return 'Truck #123'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-021",
+          "name": "attachedInformation - Weight Cert",
+          "key": "attached_info_weight_cert",
+          "order": 20,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the `Weight Cert #` field and format as 'Weight Certificate {value}'. For example, if Weight Cert # is 'WC-456', return 'Weight Certificate WC-456'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-022",
+          "name": "attachedInformation - High Hazard Fuel",
+          "key": "attached_info_hazard",
+          "order": 21,
+          "type": "string",
+          "visible": true,
+          "prompt": "If the `High Hazard Fuel` field is 'Y' or 'Yes', return 'High hazard fuel designation'. Otherwise, return null.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-023",
+          "name": "lastUpdated",
+          "key": "last_updated",
+          "order": 22,
+          "type": "date",
+          "visible": true,
+          "prompt": "Return the current timestamp in ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). This represents when the BOOST record was created.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-024",
+          "name": "@context",
+          "key": "boost_context",
+          "order": 23,
+          "type": "object",
+          "visible": false,
+          "prompt": "Always return this exact JSON object: {\"boost\": \"https://github.com/carbondirect/BOOST/context/v1.0\", \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"}. This is the JSON-LD context for BOOST.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-025",
+          "name": "@id",
+          "key": "boost_id",
+          "order": 24,
+          "type": "string",
+          "visible": false,
+          "prompt": "Extract the `Load #` or `Key` field and format as `https://altacalifornia.com/boost/tru/{value}`. This is the globally unique IRI for this traceable unit.",
+          "linked_to_resource_field": null
+        }
+      ],
+      "identifier_prompt": "This is the contents of the `Load #` field. It's a number or alphanumeric code and you should extract it as-is without any formatting. This will be used as the primary identifier for the TraceableUnit.",
+      "pre_processing_prompt": null
+    },
+    {
+      "name": "Load Ticket - BOOST TraceableUnit",
+      "key": "load_ticket_boost",
+      "role": "primary",
+      "processor": "ticket",
+      "types_inference_prompt": "This is the file identifying an individual load and it can come in two flavors:\n- a `USDA Forest Service` ticket\n- a `Sierra Pacific Industries` ticket\n\nThe document should be marked as containing a `Load Ticket` if we match any of these 2 types (they're actually sub-types of our document).\n\n## USDA Forest Service Ticket\nThis is a Green ticket with barcodes. Says `USDA Forest Service` in black bolded text.\n\n## Sierra Pacific Industries Ticket\nThis is a white ticket with handwritten information thats titled `Sierra Pacific Industries`.",
+      "fields": [
+        {
+          "id": "boost-ticket-001",
+          "name": "@type",
+          "key": "boost_type",
+          "order": 0,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return exactly `TraceableUnit`. This is a required BOOST field identifying the entity type.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-002",
+          "name": "traceableUnitId",
+          "key": "traceable_unit_id",
+          "order": 1,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the ticket identifier (see identifier_prompt) and format it as `TRU-TICKET-{identifier}`. For USFS tickets with format S-XX-XXXXXXX, keep the full format. For red number tickets, keep leading zeros if present.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-003",
+          "name": "harvestGeographicDataId",
+          "key": "harvest_geographic_data_id",
+          "order": 2,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract from the USFS ticket under `RANGER DISTRICT ADDRESS AND TELEPHONE NUMBER` - this is usually the name of a national forest. Return the value as-is. If not available, use 'Trinity' as default.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-004",
+          "name": "createdTimestamp",
+          "key": "created_timestamp",
+          "order": 3,
+          "type": "date",
+          "visible": true,
+          "prompt": "Extract the handwritten `Date` field and convert to ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ). Handle various handwritten date formats gracefully. If the date is unclear or malformed, make your best interpretation and format correctly. Use 00:00:00Z for time.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-005",
+          "name": "currentGeographicDataId",
+          "key": "current_geographic_data_id",
+          "order": 4,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the handwritten `DESTINATION` field exactly as written. If unavailable or unclear, return 'UNAVAILABLE'.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-006",
+          "name": "unitType",
+          "key": "unit_type",
+          "order": 5,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `volume_aggregation` for loads documented by tickets.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-007",
+          "name": "identificationMethodId",
+          "key": "identification_method_id",
+          "order": 6,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `IM-TRIP-TICKET-001`.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-008",
+          "name": "identificationConfidence",
+          "key": "identification_confidence",
+          "order": 7,
+          "type": "number",
+          "visible": true,
+          "prompt": "Return `85` (lower than database records due to handwritten nature).",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-009",
+          "name": "methodReadinessLevel",
+          "key": "method_readiness_level",
+          "order": 8,
+          "type": "number",
+          "visible": true,
+          "prompt": "Always return `6` (slightly lower than digital systems).",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-010",
+          "name": "currentStatus",
+          "key": "current_status",
+          "order": 9,
+          "type": "string",
+          "visible": true,
+          "prompt": "Always return `in_transit` for load tickets (they document loads in movement).",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-011",
+          "name": "lastUpdated",
+          "key": "last_updated",
+          "order": 10,
+          "type": "date",
+          "visible": true,
+          "prompt": "Return the current timestamp in ISO 8601 format.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-ticket-012",
+          "name": "@context",
+          "key": "boost_context",
+          "order": 11,
+          "type": "object",
+          "visible": false,
+          "prompt": "Always return: {\"boost\": \"https://github.com/carbondirect/BOOST/context/v1.0\", \"xsd\": \"http://www.w3.org/2001/XMLSchema#\"}",
+          "linked_to_resource_field": null
+        }
+      ],
+      "identifier_prompt": "This identifier can show up in two different ways depending on the document subtype.\n- It may be printed in red at the bottom, these are all numbers. It could look like `043524`. In this case, keep leading zeros, if any.\n- It may also show up as a number by the barcode, usually repeated twice, in the format of S-XX-XXXXXXX where X are numbers. Be mindful that sometimes the `S` might look like a `5`. Extract this exactly as formatted.",
+      "pre_processing_prompt": null
+    },
+    {
+      "name": "Weight Certificate - BOOST Supplement",
+      "key": "weight_certificate_boost",
+      "role": "secondary",
+      "processor": "ticket",
+      "types_inference_prompt": "Titled `Weightmaster Certificate`",
+      "fields": [
+        {
+          "id": "boost-weight-001",
+          "name": "operatorId",
+          "key": "operator_id",
+          "order": 0,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the handwritten `carrier` field value exactly as it appears.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-weight-002",
+          "name": "secondaryIdentifier - Truck",
+          "key": "secondary_identifier_truck",
+          "order": 1,
+          "type": "object",
+          "visible": true,
+          "prompt": "Extract the handwritten `truck no` and create: {\"identifierType\": \"manual_id\", \"identifierValue\": \"TRUCK-{value}\", \"confidence\": 90}",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-weight-003",
+          "name": "lastUpdated",
+          "key": "last_updated",
+          "order": 2,
+          "type": "date",
+          "visible": true,
+          "prompt": "Extract handwritten `date` field and convert to ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ).",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-weight-004",
+          "name": "materialTypeId",
+          "key": "material_type_id",
+          "order": 3,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract the handwritten `product` field. Remove any numbers that appear after the product code (e.g., 'WF 123234' becomes 'WF'). Return just the product code.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-weight-005",
+          "name": "totalVolumeM3",
+          "key": "total_volume_m3",
+          "order": 4,
+          "type": "number",
+          "visible": true,
+          "prompt": "Extract the NET weight from the certificate (not gross or tare). Check the unit field. If unit is 'lbs', convert using: (weight × 0.453592) ÷ 600. If unit is 'tons', use: (weight × 907.185) ÷ 600. Round to 2 decimal places. Return only the number.",
+          "linked_to_resource_field": null
+        },
+        {
+          "id": "boost-weight-006",
+          "name": "attachedInformation - Weight Details",
+          "key": "attached_info_weight",
+          "order": 5,
+          "type": "string",
+          "visible": true,
+          "prompt": "Extract weight unit and original weight value, format as: 'Original weight: {weight} {unit} (net)'",
+          "linked_to_resource_field": null
+        }
+      ],
+      "identifier_prompt": null,
+      "pre_processing_prompt": null
+    }
+  ],
+  "name": "BOOST TraceableUnit Extraction Config",
+  "resource_type": "boost_traceable_units"
+}

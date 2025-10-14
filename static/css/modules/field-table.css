@@ -144,12 +144,6 @@
     font-style: italic;
 }
 
-/* Field Type Column */
-.field-type {
-    color: #6c757d;
-    font-size: 12px;
-    min-width: 80px;
-}
 
 /* Field Error Column */
 .field-errors {

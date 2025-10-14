@@ -11,21 +11,39 @@ export class FieldParser {
     static parseJsonFields(obj, prefix = '', fields = []) {
         for (const [key, value] of Object.entries(obj)) {
             const fieldPath = prefix ? `${prefix}.${key}` : key;
+
+            // Skip @context nested properties - treat @context as a single field
+            if (key === '@context' && typeof value === 'object') {
+                const field = {
+                    name: key,
+                    path: fieldPath,
+                    displayName: getDisplayName(key, fieldPath),
+                    value: value,
+                    type: getFieldType(value),
+                    displayValue: formatFieldValue(value, key),
+                    valueClass: getValueClass(value),
+                    importance: getFieldImportance(key, prefix)
+                };
+                fields.push(field);
+                continue; // Skip recursive parsing for @context
+            }
+
             const field = {
                 name: key,
                 path: fieldPath,
                 displayName: getDisplayName(key, fieldPath),
                 value: value,
                 type: getFieldType(value),
-                displayValue: formatFieldValue(value),
+                displayValue: formatFieldValue(value, key),
                 valueClass: getValueClass(value),
                 importance: getFieldImportance(key, prefix)
             };
-            
+
             fields.push(field);
 
             // Recursively parse nested objects (but not arrays for simplicity)
-            if (value && typeof value === 'object' && !Array.isArray(value)) {
+            // Skip @context and other JSON-LD metadata fields
+            if (value && typeof value === 'object' && !Array.isArray(value) && key !== '@context') {
                 FieldParser.parseJsonFields(value, fieldPath, fields);
             }
         }

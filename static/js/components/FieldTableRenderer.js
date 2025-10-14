@@ -108,7 +108,6 @@ export class FieldTableRenderer {
                         <th>Status</th>
                         <th>Field Name</th>
                         <th>Value</th>
-                        <th>Type</th>
                         <th>Errors</th>
                     </tr>
                 </thead>
@@ -198,7 +197,6 @@ export class FieldTableRenderer {
                 <td class="field-name">${escapeHtml(field.displayName)}</td>
                 <td class="field-required">${requiredStatus}</td>
                 <td class="field-value ${field.valueClass}">${escapeHtml(field.displayValue)}</td>
-                <td class="field-type">${field.type}</td>
                 <td class="field-description">${description}</td>
                 <td class="field-errors">${fieldErrors}</td>
             </tr>
@@ -270,8 +268,7 @@ export class FieldTableRenderer {
                         <th style="width: 180px;">Field Name</th>
                         <th style="width: 90px;">Required</th>
                         <th style="width: 160px;">Value</th>
-                        <th style="width: 70px;">Type</th>
-                        <th style="width: 280px;">Description & Examples</th>
+                        <th style="width: 350px;">Description & Examples</th>
                         <th style="width: 220px;">Validation Errors</th>
                     </tr>
                 </thead>
