@@ -170,9 +170,7 @@ export class UIController {
                     ${result.errors && result.errors.length > 0 ? `
                         <div class="result-section">
                             <h4>Errors (${result.errors.length})</h4>
-                            <ul class="error-list">
-                                ${result.errors.map(error => `<li>${escapeHtml(error)}</li>`).join('')}
-                            </ul>
+                            ${this._renderErrorTabs(result)}
                         </div>
                     ` : ''}
                 </div>
@@ -180,6 +178,272 @@ export class UIController {
         `;
         
         container.innerHTML = resultHtml;
+    }
+
+    /**
+     * Render error tabs with categorized errors
+     */
+    _renderErrorTabs(result) {
+        const errorsByType = result.errors_by_type || {};
+
+        // Define error type priority and configuration
+        const errorTypeConfig = [
+            { key: 'required', label: 'Missing Fields', icon: '⚠️' },
+            { key: 'format', label: 'Format Errors', icon: '✍️' },
+            { key: 'pattern', label: 'Pattern Errors', icon: '🔍' },
+            { key: 'enum', label: 'Invalid Values', icon: '📋' },
+            { key: 'type', label: 'Type Errors', icon: '🔤' },
+            { key: 'constraint', label: 'Constraints', icon: '📏' },
+            { key: 'other', label: 'Other', icon: '❌' }
+        ];
+
+        // Filter to only show tabs with errors
+        const availableTabs = errorTypeConfig.filter(config =>
+            errorsByType[config.key] && errorsByType[config.key].length > 0
+        );
+
+        if (availableTabs.length === 0) {
+            // Fallback to showing all errors in a list (old behavior)
+            return `
+                <div class="error-list">
+                    ${result.errors.map(error => this._formatErrorMessage(error)).join('')}
+                </div>
+            `;
+        }
+
+        // Generate unique ID for this error tabs instance
+        const tabsId = 'error-tabs-' + Date.now();
+
+        // Render tabs
+        const tabButtons = availableTabs.map((config, index) => {
+            const count = errorsByType[config.key].length;
+            const isActive = index === 0 ? 'active' : '';
+            return `
+                <button class="error-tab-button ${isActive}"
+                        data-tab-target="${tabsId}-${config.key}"
+                        onclick="window.boostValidator.uiController.switchErrorTab('${tabsId}', '${config.key}')">
+                    <span class="error-tab-icon">${config.icon}</span>
+                    <span class="error-tab-label">${config.label}</span>
+                    <span class="error-tab-count">${count}</span>
+                </button>
+            `;
+        }).join('');
+
+        // Render tab contents
+        const tabContents = availableTabs.map((config, index) => {
+            const isActive = index === 0 ? 'active' : '';
+            const errors = errorsByType[config.key];
+            return `
+                <div id="${tabsId}-${config.key}" class="error-tab-content ${isActive}">
+                    <div class="error-list">
+                        ${errors.map(error => this._formatErrorMessage(error)).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div class="error-tabs-container" data-tabs-id="${tabsId}">
+                <div class="error-tabs">
+                    ${tabButtons}
+                </div>
+                <div class="error-tabs-content">
+                    ${tabContents}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Switch between error tabs
+     */
+    switchErrorTab(tabsId, tabKey) {
+        const container = document.querySelector(`[data-tabs-id="${tabsId}"]`);
+        if (!container) return;
+
+        // Update button states
+        const buttons = container.querySelectorAll('.error-tab-button');
+        buttons.forEach(btn => {
+            if (btn.dataset.tabTarget === `${tabsId}-${tabKey}`) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Update content visibility
+        const contents = container.querySelectorAll('.error-tab-content');
+        contents.forEach(content => {
+            if (content.id === `${tabsId}-${tabKey}`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+    }
+
+    /**
+     * Format an individual error message for better readability
+     */
+    _formatErrorMessage(error) {
+        // Handle both string errors (legacy) and object errors (new format)
+        if (typeof error === 'string') {
+            return this._formatLegacyErrorMessage(error);
+        }
+
+        // New format with error type
+        const errorType = error.type || 'other';
+        const fieldName = error.field;
+        const message = error.message;
+
+        // Get type-specific icons and styles
+        const typeConfig = this._getErrorTypeConfig(errorType);
+
+        if (fieldName) {
+            let extraInfo = '';
+
+            // Add extra information based on error type
+            if (errorType === 'enum' && error.allowed_values) {
+                const values = error.allowed_values.map(v => `<code>${escapeHtml(v)}</code>`).join(', ');
+                let actualValueDisplay = '';
+                if (error.actual_value !== undefined && error.actual_value !== null) {
+                    const actualValueStr = typeof error.actual_value === 'string'
+                        ? error.actual_value
+                        : JSON.stringify(error.actual_value);
+                    actualValueDisplay = `<div class="error-actual-value">Current value: <code class="error-actual">${escapeHtml(actualValueStr)}</code></div>`;
+                }
+                extraInfo = `
+                    <div class="error-hint">Allowed values: ${values}</div>
+                    ${actualValueDisplay}
+                `;
+            } else if (errorType === 'pattern' && error.pattern) {
+                let actualValueDisplay = '';
+                if (error.actual_value !== undefined && error.actual_value !== null) {
+                    const actualValueStr = typeof error.actual_value === 'string'
+                        ? error.actual_value
+                        : JSON.stringify(error.actual_value);
+                    actualValueDisplay = `<div class="error-actual-value">Current value: <code class="error-actual">${escapeHtml(actualValueStr)}</code></div>`;
+                }
+                extraInfo = `
+                    <div class="error-hint">Expected pattern: <code>${escapeHtml(error.pattern)}</code></div>
+                    ${actualValueDisplay}
+                `;
+            } else if (errorType === 'type' && error.expected) {
+                extraInfo = `<div class="error-hint">Expected type: <code>${escapeHtml(error.expected)}</code></div>`;
+            } else if (errorType === 'format' && error.expected_format) {
+                extraInfo = `<div class="error-hint">Expected format: <code>${escapeHtml(error.expected_format)}</code></div>`;
+            }
+
+            return `
+                <div class="error-item error-type-${errorType}">
+                    <div class="error-field">
+                        <span class="error-field-icon">${typeConfig.icon}</span>
+                        <strong>${escapeHtml(fieldName)}</strong>
+                        <span class="error-badge">${typeConfig.label}</span>
+                    </div>
+                    <div class="error-message">${escapeHtml(this._cleanErrorMessage(message, fieldName))}</div>
+                    ${extraInfo}
+                </div>
+            `;
+        } else {
+            return `
+                <div class="error-item error-type-${errorType}">
+                    <div class="error-message">
+                        <span class="error-icon">${typeConfig.icon}</span>
+                        ${escapeHtml(message)}
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Get configuration for each error type
+     */
+    _getErrorTypeConfig(type) {
+        const configs = {
+            'required': {
+                icon: '⚠️',
+                label: 'Missing Field'
+            },
+            'type': {
+                icon: '🔤',
+                label: 'Wrong Type'
+            },
+            'enum': {
+                icon: '📋',
+                label: 'Invalid Value'
+            },
+            'pattern': {
+                icon: '🔍',
+                label: 'Format Error'
+            },
+            'constraint': {
+                icon: '📏',
+                label: 'Out of Range'
+            },
+            'format': {
+                icon: '✍️',
+                label: 'Format Error'
+            },
+            'other': {
+                icon: '❌',
+                label: 'Validation Error'
+            }
+        };
+        return configs[type] || configs['other'];
+    }
+
+    /**
+     * Clean error message by removing field name prefix
+     */
+    _cleanErrorMessage(message, fieldName) {
+        // Remove "Field 'xxx':" prefix
+        let cleaned = message.replace(/Field\s+'[^']+'\s*:\s*/, '');
+        // Remove "Missing required field: 'xxx'" and just keep description
+        cleaned = cleaned.replace(/Missing required field:\s+'[^']+'\s*(in\s+[^']+)?/, 'This field is required');
+        return cleaned;
+    }
+
+    /**
+     * Format legacy string error messages (fallback)
+     */
+    _formatLegacyErrorMessage(error) {
+        // Parse the error to extract field name if present
+        const fieldMatch = error.match(/(?:Field|field)\s+'([^']+)'/);
+        const missingFieldMatch = error.match(/Missing required field:\s+'([^']+)'/);
+
+        let fieldName = null;
+        let message = error;
+
+        if (fieldMatch) {
+            fieldName = fieldMatch[1];
+            message = error.replace(/Field\s+'[^']+'\s*:\s*/, '');
+        } else if (missingFieldMatch) {
+            fieldName = missingFieldMatch[1];
+            message = 'This field is required';
+        }
+
+        if (fieldName) {
+            return `
+                <div class="error-item">
+                    <div class="error-field">
+                        <span class="error-field-icon">📍</span>
+                        <strong>${escapeHtml(fieldName)}</strong>
+                    </div>
+                    <div class="error-message">${escapeHtml(message)}</div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="error-item">
+                    <div class="error-message">
+                        <span class="error-icon">⚠️</span>
+                        ${escapeHtml(message)}
+                    </div>
+                </div>
+            `;
+        }
     }
 
     /**

@@ -42,8 +42,9 @@ export class FieldTableRenderer {
      * Filter the table to show only error rows
      */
     filterErrorsOnly(showErrorsOnly) {
-        const rows = this.container.querySelectorAll('.field-table tbody tr');
-        
+        // Support both regular and enhanced tables
+        const rows = this.container.querySelectorAll('.field-table tbody tr, .enhanced-field-table tbody tr');
+
         rows.forEach(row => {
             const hasError = row.classList.contains('error-row');
             row.style.display = (showErrorsOnly && !hasError) ? 'none' : '';
@@ -122,16 +123,18 @@ export class FieldTableRenderer {
      * Update summary after filtering
      */
     _updateSummaryAfterFilter(showErrorsOnly) {
-        const rows = Array.from(this.container.querySelectorAll('.field-table tbody tr'));
+        // Support both regular and enhanced tables
+        const rows = Array.from(this.container.querySelectorAll('.field-table tbody tr, .enhanced-field-table tbody tr'));
         const visibleRows = rows.filter(row => row.style.display !== 'none');
         const errorRows = visibleRows.filter(row => row.classList.contains('error-row'));
-        
+
         const summary = this.container.querySelector('.field-summary');
         if (summary) {
-            const fieldCount = showErrorsOnly ? errorRows.length : visibleRows.length;
+            const fieldCount = showErrorsOnly ? errorRows.length : rows.length;
+            const validCount = rows.length - errorRows.length;
             summary.innerHTML = `
                 <span class="field-count">📊 ${fieldCount} fields ${showErrorsOnly ? '(errors only)' : 'total'}</span>
-                <span class="valid-count">✅ ${visibleRows.length - errorRows.length} valid</span>
+                <span class="valid-count">✅ ${validCount} valid</span>
                 <span class="error-count">❌ ${errorRows.length} errors</span>
             `;
         }

@@ -217,14 +217,6 @@ export class BOOSTValidator {
         const section = document.getElementById('fieldAnalysisSection');
         if (section) {
             section.style.display = 'block';
-            
-            // Smooth scroll to the field analysis section
-            setTimeout(() => {
-                section.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }, 300);
         }
     }
 
@@ -288,14 +280,6 @@ export class BOOSTValidator {
         const section = document.getElementById('entityRepresentationSection');
         if (section) {
             section.style.display = 'block';
-            
-            // Smooth scroll to the section
-            setTimeout(() => {
-                section.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }, 300);
         }
     }
 

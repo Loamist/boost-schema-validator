@@ -6,5 +6,5 @@ import { BOOSTValidator } from './BOOSTValidator.js';
 
 // Initialize the validator when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    new BOOSTValidator();
+    window.boostValidator = new BOOSTValidator();
 });

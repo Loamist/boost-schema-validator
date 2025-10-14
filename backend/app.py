@@ -147,28 +147,174 @@ class BOOSTWebValidator:
             "fields": fields
         }
     
+    def _format_validation_error(self, error: jsonschema.ValidationError) -> Dict[str, Any]:
+        """Format a jsonschema ValidationError into a user-friendly message with type"""
+        # Extract the field path
+        field_path = '.'.join(str(p) for p in error.absolute_path) if error.absolute_path else 'root'
+
+        # Get the validation type
+        validator = error.validator
+
+        # Get the actual value that caused the error (if available)
+        actual_value = error.instance if hasattr(error, 'instance') else None
+
+        # Format the error message based on validator type
+        if validator == 'required':
+            # Extract the missing property name from the message
+            missing_prop = error.message.replace("'", "").replace(" is a required property", "").strip()
+            if field_path == 'root':
+                message = f"Missing required field: '{missing_prop}'"
+            else:
+                message = f"Missing required field: '{missing_prop}' in {field_path}"
+            return {
+                "type": "required",
+                "field": missing_prop,
+                "message": message
+            }
+
+        elif validator == 'type':
+            expected_type = error.validator_value
+            if field_path == 'root':
+                message = f"Invalid type: expected {expected_type}"
+            else:
+                message = f"Field '{field_path}': expected type {expected_type}"
+            return {
+                "type": "type",
+                "field": field_path,
+                "message": message,
+                "expected": expected_type,
+                "actual_value": actual_value
+            }
+
+        elif validator == 'enum':
+            allowed_values = ', '.join(f"'{v}'" for v in error.validator_value)
+            if field_path == 'root':
+                message = f"Value must be one of: {allowed_values}"
+            else:
+                message = f"Field '{field_path}': value must be one of: {allowed_values}"
+            return {
+                "type": "enum",
+                "field": field_path,
+                "message": message,
+                "allowed_values": error.validator_value,
+                "actual_value": actual_value
+            }
+
+        elif validator == 'pattern':
+            pattern = error.validator_value
+            message = f"Field '{field_path}': value does not match required pattern '{pattern}'"
+            return {
+                "type": "pattern",
+                "field": field_path,
+                "message": message,
+                "pattern": pattern,
+                "actual_value": actual_value
+            }
+
+        elif validator in ['minLength', 'maxLength', 'minimum', 'maximum']:
+            constraint_value = error.validator_value
+            if validator == 'minLength':
+                message = f"Field '{field_path}': must be at least {constraint_value} characters long"
+            elif validator == 'maxLength':
+                message = f"Field '{field_path}': must be at most {constraint_value} characters long"
+            elif validator == 'minimum':
+                message = f"Field '{field_path}': value must be at least {constraint_value}"
+            else:  # maximum
+                message = f"Field '{field_path}': value must be at most {constraint_value}"
+
+            return {
+                "type": "constraint",
+                "field": field_path,
+                "message": message,
+                "constraint": validator,
+                "value": constraint_value
+            }
+
+        elif validator == 'format':
+            expected_format = error.validator_value
+            message = f"Field '{field_path}': must be a valid {expected_format}"
+            return {
+                "type": "format",
+                "field": field_path,
+                "message": message,
+                "expected_format": expected_format
+            }
+
+        else:
+            # For other validators, use the original message but without the schema dump
+            # Just extract the first line which usually contains the actual error
+            message_lines = error.message.split('\n')
+            clean_message = message_lines[0] if message_lines else error.message
+            if field_path == 'root':
+                message = f"{clean_message}"
+            else:
+                message = f"Field '{field_path}': {clean_message}"
+
+            return {
+                "type": "other",
+                "field": field_path if field_path != 'root' else None,
+                "message": message
+            }
+
     def validate_entity(self, entity_name: str, test_data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate test data against entity schema"""
         try:
             schema = self.load_entity_schema(entity_name)
-            
-            # Validate against JSON schema
-            jsonschema.validate(test_data, schema)
-            
-            # Business rules validation (temporarily simplified)
+
+            # Create a validator instance to collect ALL errors (not just the first one)
+            validator_class = jsonschema.Draft7Validator
+            validator = validator_class(schema)
+
+            # Collect all validation errors
+            validation_errors = list(validator.iter_errors(test_data))
+
+            if validation_errors:
+                # Format all errors and group by type
+                all_errors = []
+                errors_by_type = {
+                    "required": [],
+                    "format": [],
+                    "pattern": [],
+                    "enum": [],
+                    "type": [],
+                    "constraint": [],
+                    "other": []
+                }
+
+                for error in validation_errors:
+                    formatted_error = self._format_validation_error(error)
+                    all_errors.append(formatted_error)
+
+                    # Group by type
+                    error_type = formatted_error.get("type", "other")
+                    if error_type in errors_by_type:
+                        errors_by_type[error_type].append(formatted_error)
+                    else:
+                        errors_by_type["other"].append(formatted_error)
+
+                return {
+                    "valid": False,
+                    "schema_valid": False,
+                    "business_rules_valid": False,
+                    "errors": all_errors,
+                    "errors_by_type": errors_by_type,
+                    "message": "Schema validation failed"
+                }
+
+            # If schema validation passed, check business rules
             business_rules_valid = True
             business_errors = []
-            
+
             # TODO: Implement json-logic business rules validation
             # For now, we'll do basic validation checks
-            schema_file = self.schema_root / ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower() 
+            schema_file = self.schema_root / ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower()
                                                    for i, c in enumerate(entity_name)]) / "validation_schema.json"
-            
+
             try:
                 with open(schema_file, 'r') as f:
                     full_schema = json.load(f)
                     rules = full_schema.get('rules')
-                    
+
                     if rules:
                         # Simple validation: check if required fields are present and not empty
                         required_fields = schema.get('required', [])
@@ -176,27 +322,18 @@ class BOOSTWebValidator:
                             if field not in test_data or test_data[field] is None or test_data[field] == "":
                                 business_rules_valid = False
                                 business_errors.append(f"Required field '{field}' is missing or empty")
-                        
+
                         # Additional basic checks can be added here
                         business_errors.append("Note: Advanced business rule validation temporarily disabled")
             except Exception as e:
                 business_errors.append(f"Business rule check error: {str(e)}")
-            
+
             return {
                 "valid": True,
                 "schema_valid": True,
                 "business_rules_valid": business_rules_valid,
                 "errors": business_errors,
                 "message": "Validation successful" if business_rules_valid else "Schema valid but business rules failed"
-            }
-            
-        except jsonschema.ValidationError as e:
-            return {
-                "valid": False,
-                "schema_valid": False,
-                "business_rules_valid": False,
-                "errors": [str(e)],
-                "message": "Schema validation failed"
             }
         except FileNotFoundError as e:
             return {

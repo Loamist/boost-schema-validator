@@ -4,9 +4,34 @@
  */
 
 /**
- * Extract field name from validation error message
+ * Extract field name from validation error (handles both string and object formats)
  */
-export function extractFieldFromError(errorMessage) {
+export function extractFieldFromError(error) {
+    // Handle new object format
+    if (typeof error === 'object' && error !== null) {
+        // New format has a 'field' property
+        if (error.field) {
+            return error.field;
+        }
+        // Fallback to extracting from message
+        if (error.message) {
+            return extractFieldFromMessage(error.message);
+        }
+        return null;
+    }
+
+    // Handle legacy string format
+    if (typeof error === 'string') {
+        return extractFieldFromMessage(error);
+    }
+
+    return null;
+}
+
+/**
+ * Extract field name from error message string
+ */
+function extractFieldFromMessage(errorMessage) {
     // Try to extract field names from common error patterns
     const patterns = [
         /property '([^']+)'/i,
@@ -14,7 +39,8 @@ export function extractFieldFromError(errorMessage) {
         /Required field '([^']+)'/i,
         /'([^']+)' is missing/i,
         /\$\.([a-zA-Z_][a-zA-Z0-9_]*)/,
-        /property "([^"]+)"/i
+        /property "([^"]+)"/i,
+        /Missing required field:\s+'([^']+)'/i
     ];
 
     for (const pattern of patterns) {
@@ -30,12 +56,14 @@ export function extractFieldFromError(errorMessage) {
  */
 export function createErrorMap(errors) {
     const errorMap = {};
-    
+
     errors.forEach(error => {
         const fieldPath = extractFieldFromError(error);
         if (fieldPath) {
             if (!errorMap[fieldPath]) errorMap[fieldPath] = [];
-            errorMap[fieldPath].push(error);
+            // Store the display message (for backward compatibility)
+            const displayMessage = typeof error === 'object' ? error.message : error;
+            errorMap[fieldPath].push(displayMessage);
         }
     });
 
