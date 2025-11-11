@@ -31,8 +31,11 @@ export class FieldTableRenderer {
         } catch (error) {
             console.error('Error generating field table:', error);
             this.container.innerHTML = `
-                <div class="table-placeholder">
-                    <p>❌ Could not generate field table: ${escapeHtml(error.message)}</p>
+                <div class="alert alert-error shadow-lg">
+                    <svg class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Could not generate field table: ${escapeHtml(error.message)}</span>
                 </div>
             `;
         }
@@ -85,58 +88,96 @@ export class FieldTableRenderer {
     }
 
     /**
-     * Render the summary statistics
+     * Render the summary statistics with DaisyUI stats component
      */
     _renderSummary(stats) {
         return `
-            <div class="field-summary">
-                <span class="field-count">📊 ${stats.total} fields total</span>
-                <span class="valid-count">✅ ${stats.valid} valid</span>
-                <span class="error-count">❌ ${stats.errors} errors</span>
+            <div class="stats stats-horizontal shadow mb-4 w-full">
+                <div class="stat bg-base-100">
+                    <div class="stat-figure text-primary">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-title">Total Fields</div>
+                    <div class="stat-value text-primary">${stats.total}</div>
+                </div>
+
+                <div class="stat bg-base-100">
+                    <div class="stat-figure text-success">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-title">Valid</div>
+                    <div class="stat-value text-success">${stats.valid}</div>
+                </div>
+
+                <div class="stat bg-base-100">
+                    <div class="stat-figure text-error">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-title">Errors</div>
+                    <div class="stat-value text-error">${stats.errors}</div>
+                </div>
             </div>
         `;
     }
 
     /**
-     * Render the complete table HTML
+     * Render the complete table HTML (DaisyUI table)
      */
     _renderTable(summaryHtml, tableRows) {
         return `
             ${summaryHtml}
-            <table class="field-table">
-                <thead>
-                    <tr>
-                        <th>Status</th>
-                        <th>Field Name</th>
-                        <th>Value</th>
-                        <th>Errors</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableRows.join('')}
-                </tbody>
-            </table>
+            <div class="overflow-x-auto rounded-lg border border-base-300 shadow-sm">
+                <table class="table table-zebra table-sm">
+                    <thead class="bg-base-200 text-base-content">
+                        <tr>
+                            <th class="text-center">Status</th>
+                            <th>Field Name</th>
+                            <th>Value</th>
+                            <th>Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows.join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
 
     /**
-     * Update summary after filtering
+     * Update summary after filtering (DaisyUI stats)
      */
     _updateSummaryAfterFilter(showErrorsOnly) {
         // Support both regular and enhanced tables
-        const rows = Array.from(this.container.querySelectorAll('.field-table tbody tr, .enhanced-field-table tbody tr'));
-        const visibleRows = rows.filter(row => row.style.display !== 'none');
-        const errorRows = visibleRows.filter(row => row.classList.contains('error-row'));
+        const rows = Array.from(this.container.querySelectorAll('tbody tr'));
+        const errorRows = rows.filter(row => row.classList.contains('error-row') || row.classList.contains('bg-error/5'));
 
-        const summary = this.container.querySelector('.field-summary');
-        if (summary) {
+        const statsContainer = this.container.querySelector('.stats');
+        if (statsContainer) {
             const fieldCount = showErrorsOnly ? errorRows.length : rows.length;
             const validCount = rows.length - errorRows.length;
-            summary.innerHTML = `
-                <span class="field-count">📊 ${fieldCount} fields ${showErrorsOnly ? '(errors only)' : 'total'}</span>
-                <span class="valid-count">✅ ${validCount} valid</span>
-                <span class="error-count">❌ ${errorRows.length} errors</span>
-            `;
+
+            // Update stat values
+            const statValues = statsContainer.querySelectorAll('.stat-value');
+            if (statValues.length >= 3) {
+                statValues[0].textContent = fieldCount;
+                statValues[1].textContent = validCount;
+                statValues[2].textContent = errorRows.length;
+            }
+
+            // Update title to show filter status
+            const firstStatTitle = statsContainer.querySelector('.stat-title');
+            if (firstStatTitle && showErrorsOnly) {
+                firstStatTitle.textContent = 'Filtered Fields';
+            } else if (firstStatTitle) {
+                firstStatTitle.textContent = 'Total Fields';
+            }
         }
     }
 
@@ -162,46 +203,57 @@ export class FieldTableRenderer {
         } catch (error) {
             console.error('Error generating enhanced field table:', error);
             this.container.innerHTML = `
-                <div class="table-loading">
-                    <p>❌ Could not generate enhanced field table: ${escapeHtml(error.message)}</p>
+                <div class="alert alert-error shadow-lg">
+                    <svg class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Could not generate enhanced field table: ${escapeHtml(error.message)}</span>
                 </div>
             `;
         }
     }
 
     /**
-     * Render enhanced table row with dictionary information
+     * Render enhanced table row with dictionary information (DaisyUI styled)
      */
     _renderEnhancedTableRow(field, errorMap, dictionaryData) {
         const hasError = errorMap[field.path] && errorMap[field.path].length > 0;
         const fieldInfo = this._getFieldDictionaryInfo(field.name, dictionaryData);
-        
-        const statusIcon = hasError 
-            ? '<span class="status-icon error">❌</span>'
-            : '<span class="status-icon valid">✅</span>';
 
-        const requiredStatus = fieldInfo.required 
-            ? '<span class="required-badge">Required</span>'
-            : '<span class="optional-badge">Optional</span>';
+        // DaisyUI badge for status
+        const statusIcon = hasError
+            ? '<span class="badge badge-error badge-sm gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg> Error</span>'
+            : '<span class="badge badge-success badge-sm gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Valid</span>';
 
-        const rowClass = hasError ? 'error-row' : '';
-        
-        const fieldErrors = hasError 
-            ? errorMap[field.path].map(error => 
-                `<div class="enhanced-error-message">${escapeHtml(error)}</div>`
+        // DaisyUI badge for required status
+        const requiredStatus = fieldInfo.required
+            ? '<span class="badge badge-error badge-sm">Required</span>'
+            : '<span class="badge badge-ghost badge-sm">Optional</span>';
+
+        const rowClass = hasError ? 'bg-error/5 hover:bg-error/10' : 'hover:bg-base-200';
+
+        // Format errors as DaisyUI alerts
+        const fieldErrors = hasError
+            ? errorMap[field.path].map(error =>
+                `<div class="alert alert-error py-2 px-3 mt-1">
+                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-xs">${escapeHtml(error)}</span>
+                </div>`
               ).join('')
-            : '';
+            : '<span class="text-success text-sm">✓ No errors</span>';
 
         const description = this._renderFieldDescription(fieldInfo);
 
         return `
             <tr class="${rowClass}" data-field-path="${field.path}">
-                <td class="field-status">${statusIcon}</td>
-                <td class="field-name">${escapeHtml(field.displayName)}</td>
-                <td class="field-required">${requiredStatus}</td>
-                <td class="field-value ${field.valueClass}">${escapeHtml(field.displayValue)}</td>
-                <td class="field-description">${description}</td>
-                <td class="field-errors">${fieldErrors}</td>
+                <td class="text-center">${statusIcon}</td>
+                <td class="font-mono text-sm font-semibold">${escapeHtml(field.displayName)}</td>
+                <td class="text-center">${requiredStatus}</td>
+                <td class="font-mono text-sm ${hasError ? 'text-error' : 'text-base-content/80'}">${escapeHtml(field.displayValue)}</td>
+                <td class="text-sm text-base-content/70">${description}</td>
+                <td>${fieldErrors}</td>
             </tr>
         `;
     }
@@ -234,51 +286,70 @@ export class FieldTableRenderer {
     }
 
     /**
-     * Render field description with examples
+     * Render field description with examples (DaisyUI collapse component)
      */
     _renderFieldDescription(fieldInfo) {
         if (!fieldInfo.description && !fieldInfo.examples) {
-            return '<span style="color: #999; font-style: italic;">No description available</span>';
+            return '<span class="text-base-content/40 italic text-xs">No description available</span>';
         }
-        
+
         let html = '';
-        
+
         if (fieldInfo.description) {
-            html += `<div class="description-text">${escapeHtml(fieldInfo.description)}</div>`;
+            // Truncate long descriptions
+            const desc = fieldInfo.description;
+            if (desc.length > 100 && fieldInfo.examples) {
+                // Use collapsible for long descriptions with examples
+                const truncated = desc.substring(0, 100) + '...';
+                html += `
+                    <div class="collapse collapse-arrow bg-base-200/50 rounded-lg">
+                        <input type="checkbox" />
+                        <div class="collapse-title text-xs font-medium py-2 px-3">
+                            ${escapeHtml(truncated)}
+                        </div>
+                        <div class="collapse-content text-xs px-3">
+                            <p class="mb-2">${escapeHtml(desc)}</p>
+                            ${fieldInfo.examples ? `<div class="badge badge-outline badge-sm">Examples: ${escapeHtml(fieldInfo.examples)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Short description, show inline
+                html += `<div class="text-xs">${escapeHtml(desc)}</div>`;
+                if (fieldInfo.examples) {
+                    html += `<div class="badge badge-outline badge-sm mt-1">Ex: ${escapeHtml(fieldInfo.examples)}</div>`;
+                }
+            }
+        } else if (fieldInfo.examples) {
+            html += `<div class="badge badge-outline badge-sm">Examples: ${escapeHtml(fieldInfo.examples)}</div>`;
         }
-        
-        if (fieldInfo.examples) {
-            html += `
-                <div class="field-examples">
-                    <strong>Examples:</strong> ${escapeHtml(fieldInfo.examples)}
-                </div>
-            `;
-        }
-        
+
         return html;
     }
 
     /**
-     * Render the enhanced table HTML structure
+     * Render the enhanced table HTML structure (DaisyUI table)
      */
     _renderEnhancedTable(summaryHtml, tableRows) {
         return `
             ${summaryHtml}
-            <table class="enhanced-field-table">
-                <thead>
-                    <tr>
-                        <th style="width: 50px;">Status</th>
-                        <th style="width: 180px;">Field Name</th>
-                        <th style="width: 90px;">Required</th>
-                        <th style="width: 160px;">Value</th>
-                        <th style="width: 350px;">Description & Examples</th>
-                        <th style="width: 220px;">Validation Errors</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${tableRows.join('')}
-                </tbody>
-            </table>
+            <div class="overflow-x-auto rounded-lg border border-base-300 shadow-sm">
+                <table class="table table-zebra table-sm">
+                    <thead class="bg-base-200 text-base-content">
+                        <tr>
+                            <th class="text-center">Status</th>
+                            <th>Field Name</th>
+                            <th class="text-center">Required</th>
+                            <th>Value</th>
+                            <th>Description & Examples</th>
+                            <th>Validation Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows.join('')}
+                    </tbody>
+                </table>
+            </div>
         `;
     }
 
@@ -356,12 +427,15 @@ export class FieldTableRenderer {
     }
 
     /**
-     * Show placeholder when no data available
+     * Show placeholder when no data available (DaisyUI alert)
      */
-    showPlaceholder(message = '📊 Field table will appear after validation') {
+    showPlaceholder(message = 'Field analysis table will appear after validation') {
         this.container.innerHTML = `
-            <div class="table-placeholder">
-                <p>${message}</p>
+            <div class="alert alert-info shadow-lg">
+                <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>${message}</span>
             </div>
         `;
     }

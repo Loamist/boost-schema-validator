@@ -7,6 +7,7 @@ import { UIController } from './components/UIController.js';
 import { FieldTableRenderer } from './components/FieldTableRenderer.js';
 import { PlainTextRenderer } from './components/PlainTextRenderer.js';
 import { JourneyMapRenderer } from './components/JourneyMapRenderer.js';
+import { DataGapAnalysisRenderer } from './components/DataGapAnalysisRenderer.js';
 
 export class BOOSTValidator {
     constructor() {
@@ -15,9 +16,11 @@ export class BOOSTValidator {
         this.fieldTableRenderer = new FieldTableRenderer('fieldTableContainer');
         this.plainTextRenderer = new PlainTextRenderer();
         this.journeyMapRenderer = new JourneyMapRenderer();
+        this.dataGapRenderer = new DataGapAnalysisRenderer('gapAnalysisContainer');
         this.currentEntityDictionary = null;
         this.currentJsonData = null;
-        
+        this.currentSchema = null;
+
         this.init();
     }
 
@@ -83,6 +86,7 @@ export class BOOSTValidator {
             this.uiController.updateValidateButton();
             // Hide analysis sections when user starts editing
             this.hideFieldAnalysisSection();
+            this.hideGapAnalysisSection();
             this.hideEntityRepresentationSection();
             // Update current JSON data
             this.updateCurrentJsonData();
@@ -168,44 +172,60 @@ export class BOOSTValidator {
         try {
             // Get and validate JSON data
             const testData = this.uiController.getEditorData();
-            
+
             this.uiController.setStatus('validating', 'Validating...');
-            
-            // Perform validation
-            const result = await this.validationService.validateEntity(entityName, testData);
-            
+
+            // Load schema and perform validation in parallel
+            const [result, schema] = await Promise.all([
+                this.validationService.validateEntity(entityName, testData),
+                this.validationService.getEntitySchema(entityName)
+            ]);
+
+            // Store schema for use in gap analysis
+            this.currentSchema = schema;
+
             // Display results in both views
             this.displayValidationResults(result, testData);
-            
+
             // Update status
             this.uiController.setStatus(
-                result.valid ? 'valid' : 'invalid', 
+                result.valid ? 'valid' : 'invalid',
                 result.valid ? 'Validation passed!' : 'Validation failed'
             );
-            
+
         } catch (error) {
             this.uiController.showError(error.message);
             this.uiController.setStatus('ready', 'Ready to validate');
             this.hideFieldAnalysisSection();
+            this.hideGapAnalysisSection();
         }
     }
 
     /**
-     * Display validation results in both summary and table views
+     * Display validation results - auto-detect LCFS entities for gap analysis
      */
     displayValidationResults(result, testData) {
+        const entityName = this.uiController.getCurrentEntity();
+
         // Update summary view
         this.uiController.displaySummaryResults(result);
-        
+
         // Show the entity representation section
         this.showEntityRepresentationSection();
-        
-        // Show the enhanced field analysis section
-        this.showFieldAnalysisSection();
-        
-        // Render enhanced table with dictionary data
-        this.fieldTableRenderer.renderEnhancedTable(result, testData, this.currentEntityDictionary);
-        
+
+        // Auto-detect LCFS entities for gap analysis
+        if (this.isLcfsEntity(entityName)) {
+            // Show gap analysis for LCFS entities
+            this.showGapAnalysisSection();
+            this.hideFieldAnalysisSection();
+            this.dataGapRenderer.renderGapAnalysis(result, testData, this.currentSchema);
+        } else {
+            // Show field analysis for other entities
+            this.showFieldAnalysisSection();
+            this.hideGapAnalysisSection();
+            this.fieldTableRenderer.renderEnhancedTable(result, testData, this.currentEntityDictionary);
+        }
+
         // Update entity representation content
         this.updateEntityRepresentationContent();
     }
@@ -234,26 +254,26 @@ export class BOOSTValidator {
      * Switch to Plain Text representation
      */
     switchToPlainTextRepresentation() {
-        document.getElementById('plainTextRepresentation').style.display = 'block';
-        document.getElementById('visualJourneyRepresentation').style.display = 'none';
-        document.getElementById('plainTextBtn').classList.add('active');
-        document.getElementById('visualJourneyBtn').classList.remove('active');
-        
-        document.getElementById('plainTextRepresentation').classList.add('active');
-        document.getElementById('visualJourneyRepresentation').classList.remove('active');
+        // Show/hide content divs
+        document.getElementById('plainTextRepresentation').classList.remove('hidden');
+        document.getElementById('visualJourneyRepresentation').classList.add('hidden');
+
+        // Update tab active states (DaisyUI tabs)
+        document.getElementById('plainTextBtn').classList.add('tab-active');
+        document.getElementById('visualJourneyBtn').classList.remove('tab-active');
     }
 
     /**
      * Switch to Visual Journey representation
      */
     switchToVisualJourneyRepresentation() {
-        document.getElementById('plainTextRepresentation').style.display = 'none';
-        document.getElementById('visualJourneyRepresentation').style.display = 'block';
-        document.getElementById('plainTextBtn').classList.remove('active');
-        document.getElementById('visualJourneyBtn').classList.add('active');
-        
-        document.getElementById('plainTextRepresentation').classList.remove('active');
-        document.getElementById('visualJourneyRepresentation').classList.add('active');
+        // Show/hide content divs
+        document.getElementById('plainTextRepresentation').classList.add('hidden');
+        document.getElementById('visualJourneyRepresentation').classList.remove('hidden');
+
+        // Update tab active states (DaisyUI tabs)
+        document.getElementById('plainTextBtn').classList.remove('tab-active');
+        document.getElementById('visualJourneyBtn').classList.add('tab-active');
     }
 
     /**
@@ -309,15 +329,18 @@ export class BOOSTValidator {
     }
 
     /**
-     * Update plain text representation content
+     * Update plain text representation content with DaisyUI styling
      */
     updatePlainTextRepresentation() {
         const container = document.getElementById('plainTextContent');
-        
+
         if (!this.currentJsonData) {
             container.innerHTML = `
-                <div class="placeholder">
-                    <p>📄 Validation results will show human-readable format here</p>
+                <div class="alert alert-info">
+                    <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Validation results will show in human-readable format here</span>
                 </div>
             `;
             return;
@@ -325,11 +348,30 @@ export class BOOSTValidator {
 
         const entityName = this.uiController.getCurrentEntity();
         const plainText = this.plainTextRenderer.convertToPlainText(this.currentJsonData, entityName);
-        
+
+        // Parse plain text into structured data
+        const lines = plainText.split('\n').filter(line => line.trim());
+        const formattedFields = lines.map(line => {
+            if (line.startsWith('===')) {
+                return null; // Skip header line
+            }
+            return this.formatPlainTextField(line);
+        }).filter(Boolean);
+
         container.innerHTML = `
-            <div class="plain-text-formatted">
-                <h3>${entityName || 'Entity Data'}</h3>
-                <pre>${this.formatPlainTextOutput(plainText)}</pre>
+            <div class="card bg-base-100 shadow-lg border border-base-300">
+                <div class="card-body p-6">
+                    <h3 class="card-title text-primary flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        ${entityName || 'Entity Data'}
+                    </h3>
+                    <div class="divider my-2"></div>
+                    <div class="space-y-3">
+                        ${formattedFields.join('')}
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -366,38 +408,75 @@ export class BOOSTValidator {
     }
 
     /**
-     * Format plain text output with enhanced styling
+     * Format a single plain text field with DaisyUI styling
      */
-    formatPlainTextOutput(plainText) {
-        return plainText
-            .split('\n')
-            .map(line => {
-                if (!line.trim()) return '';
-                
-                const [key, ...valueParts] = line.split(':');
-                const value = valueParts.join(':').trim();
-                
-                if (key && value) {
-                    let styledValue = this.escapeHtml(value);
-                    
-                    // Apply special styling based on content
-                    if (value.includes('TRU-') || value.includes('GEO-') || value.includes('ORG-')) {
-                        styledValue = `<span class="plain-text-value-id">${styledValue}</span>`;
-                    } else if (value.includes('cubic meters')) {
-                        styledValue = `<span class="plain-text-value-volume">${styledValue}</span>`;
-                    } else if (value.includes('%')) {
-                        styledValue = `<span class="plain-text-value-percentage">${styledValue}</span>`;
-                    } else if (value.toLowerCase() === 'active' || value.toLowerCase() === 'inactive') {
-                        styledValue = `<span class="plain-text-value-status ${value.toLowerCase()}">${styledValue}</span>`;
-                    } else if (value.match(/\d{4}/)) {
-                        styledValue = `<span class="plain-text-value-date">${styledValue}</span>`;
-                    }
-                    
-                    return `<div class="plain-text-field"><strong>${this.escapeHtml(key.trim())}:</strong> <span>${styledValue}</span></div>`;
-                }
-                return this.escapeHtml(line);
-            })
-            .join('\n');
+    formatPlainTextField(line) {
+        if (!line.trim()) return '';
+
+        const [key, ...valueParts] = line.split(':');
+        const value = valueParts.join(':').trim();
+
+        if (!key || !value) return '';
+
+        // Determine badge/styling based on content
+        let valueBadge = '';
+        let valueClass = 'text-base-content';
+
+        if (value.includes('TRU-') || value.includes('GEO-') || value.includes('ORG-') ||
+            value.includes('MAT-') || value.includes('OP-') || value.includes('IM-')) {
+            // Foreign key reference
+            valueBadge = '<span class="badge badge-primary badge-sm mr-2">Reference</span>';
+            valueClass = 'font-mono text-sm';
+        } else if (value.includes('cubic meters') || value.match(/\d+\s*(m3|gallons|liters)/i)) {
+            // Volume/measurement
+            valueBadge = '<span class="badge badge-info badge-sm mr-2">Measurement</span>';
+        } else if (value.includes('%') || value.includes('confidence') || value.includes('Level')) {
+            // Percentage or level
+            valueBadge = '<span class="badge badge-accent badge-sm mr-2">Metric</span>';
+        } else if (value.toLowerCase() === 'active' || value.toLowerCase() === 'inactive') {
+            // Status
+            const badgeColor = value.toLowerCase() === 'active' ? 'badge-success' : 'badge-ghost';
+            valueBadge = `<span class="badge ${badgeColor} badge-sm mr-2">Status</span>`;
+        } else if (value.match(/\d{4}-\d{2}-\d{2}/) || value.match(/\d{1,2}\/\d{1,2}\/\d{4}/) ||
+                   value.match(/(January|February|March|April|May|June|July|August|September|October|November|December)/)) {
+            // Date
+            valueBadge = '<span class="badge badge-outline badge-sm mr-2">Date</span>';
+        } else if (value.match(/^https?:\/\//)) {
+            // URL
+            valueBadge = '<span class="badge badge-secondary badge-sm mr-2">Link</span>';
+            valueClass = 'break-all';
+        }
+
+        // Truncate very long values
+        let displayValue = this.escapeHtml(value);
+        if (value.length > 120) {
+            const truncated = value.substring(0, 120);
+            const remaining = value.substring(120);
+            displayValue = `
+                <span>${this.escapeHtml(truncated)}</span>
+                <span class="text-base-content/50">...
+                    <button class="btn btn-xs btn-ghost" onclick="this.previousElementSibling.classList.toggle('hidden'); this.nextElementSibling.classList.toggle('hidden')">
+                        Show more
+                    </button>
+                    <span class="hidden">${this.escapeHtml(remaining)}
+                        <button class="btn btn-xs btn-ghost" onclick="this.parentElement.classList.add('hidden'); this.parentElement.previousElementSibling.previousElementSibling.classList.remove('hidden'); this.parentElement.previousElementSibling.classList.remove('hidden')">
+                            Show less
+                        </button>
+                    </span>
+                </span>
+            `;
+        }
+
+        return `
+            <div class="flex flex-col sm:flex-row py-2 px-3 rounded-lg hover:bg-base-200/50 transition-colors border-l-2 border-primary/30">
+                <div class="font-semibold text-base-content/80 min-w-[200px] mb-1 sm:mb-0">
+                    ${this.escapeHtml(key.trim())}:
+                </div>
+                <div class="${valueClass} flex-1">
+                    ${valueBadge}${displayValue}
+                </div>
+            </div>
+        `;
     }
 
     /**
@@ -415,5 +494,33 @@ export class BOOSTValidator {
     shouldShowJourneyMap(entityName) {
         const journeyMapEntities = ['TraceableUnit'];
         return journeyMapEntities.includes(entityName);
+    }
+
+    /**
+     * Check if entity is an LCFS entity that should use gap analysis
+     */
+    isLcfsEntity(entityName) {
+        const lcfsEntities = ['LcfsPathway', 'LcfsReporting'];
+        return lcfsEntities.includes(entityName);
+    }
+
+    /**
+     * Show the gap analysis section
+     */
+    showGapAnalysisSection() {
+        const section = document.getElementById('gapAnalysisSection');
+        if (section) {
+            section.style.display = 'block';
+        }
+    }
+
+    /**
+     * Hide the gap analysis section
+     */
+    hideGapAnalysisSection() {
+        const section = document.getElementById('gapAnalysisSection');
+        if (section) {
+            section.style.display = 'none';
+        }
     }
 }

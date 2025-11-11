@@ -13,32 +13,61 @@ export class UIController {
      * Set up all UI event listeners
      */
     setupEventListeners() {
-        // Modal close
-        document.querySelector('.modal-close').addEventListener('click', () => {
-            this.closeModal();
-        });
-
-        window.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('schemaModal')) {
-                this.closeModal();
-            }
-        });
+        // Modal close - DaisyUI modals handle closing via native dialog behavior
+        // The close button is in a <form method="dialog"> which auto-closes the dialog
+        // No explicit event listeners needed for DaisyUI modal closing
     }
 
     /**
-     * Show the schema modal
+     * Show the schema modal (DaisyUI dialog)
      */
     showSchemaModal(entityName, schema) {
-        document.getElementById('schemaModalTitle').textContent = `${entityName} Schema`;
-        document.getElementById('schemaContent').textContent = JSON.stringify(schema, null, 2);
-        document.getElementById('schemaModal').style.display = 'block';
+        console.log('showSchemaModal called with:', entityName);
+
+        const titleEl = document.getElementById('schemaModalTitle');
+        const contentEl = document.getElementById('schemaContent');
+        const modal = document.getElementById('schemaModal');
+
+        if (!titleEl) {
+            console.error('schemaModalTitle element not found');
+            return;
+        }
+        if (!contentEl) {
+            console.error('schemaContent element not found');
+            return;
+        }
+        if (!modal) {
+            console.error('schemaModal element not found');
+            return;
+        }
+
+        titleEl.textContent = `${entityName} Schema`;
+        contentEl.textContent = JSON.stringify(schema, null, 2);
+
+        // Use DaisyUI dialog API
+        if (typeof modal.showModal === 'function') {
+            console.log('Opening modal...');
+            modal.showModal();
+
+            // Verify it opened
+            setTimeout(() => {
+                console.log('Modal open attribute:', modal.hasAttribute('open'));
+                console.log('Modal display:', window.getComputedStyle(modal).display);
+                console.log('Modal z-index:', window.getComputedStyle(modal).zIndex);
+            }, 100);
+        } else {
+            console.error('modal.showModal is not a function');
+        }
     }
 
     /**
-     * Close the schema modal
+     * Close the schema modal (DaisyUI dialog)
      */
     closeModal() {
-        document.getElementById('schemaModal').style.display = 'none';
+        const modal = document.getElementById('schemaModal');
+        if (modal && typeof modal.close === 'function') {
+            modal.close();
+        }
     }
 
     /**
@@ -80,17 +109,40 @@ export class UIController {
     }
 
     /**
-     * Set the validation status indicator
+     * Set the validation status indicator (DaisyUI badge)
      */
     setStatus(type, message) {
-        const statusDot = document.querySelector('.status-dot');
-        const statusText = document.querySelector('.status-text');
-        
-        statusDot.className = 'status-dot';
-        if (type !== 'ready') {
-            statusDot.classList.add(type);
+        const statusBadge = document.getElementById('validationStatus');
+        const statusText = document.getElementById('statusText');
+        const loadingIcon = document.getElementById('statusLoadingIcon');
+
+        if (!statusBadge || !statusText) return; // Guard against missing elements
+
+        // Reset badge classes
+        statusBadge.className = 'badge badge-lg';
+
+        // Update based on type
+        switch(type) {
+            case 'loading':
+            case 'validating':
+                statusBadge.classList.add('badge-warning');
+                if (loadingIcon) loadingIcon.classList.remove('hidden');
+                break;
+            case 'valid':
+                statusBadge.classList.add('badge-success');
+                if (loadingIcon) loadingIcon.classList.add('hidden');
+                break;
+            case 'invalid':
+                statusBadge.classList.add('badge-error');
+                if (loadingIcon) loadingIcon.classList.add('hidden');
+                break;
+            case 'ready':
+            default:
+                statusBadge.classList.add('badge-ghost');
+                if (loadingIcon) loadingIcon.classList.add('hidden');
+                break;
         }
-        
+
         statusText.textContent = message;
     }
 
@@ -140,43 +192,104 @@ export class UIController {
     }
 
     /**
-     * Display validation results in the summary view
+     * Display validation results in the summary view (DaisyUI styled)
      */
     displaySummaryResults(result) {
         const container = document.getElementById('summaryView');
-        
+
         const resultHtml = `
-            <div class="validation-result">
-                <div class="result-summary ${result.valid ? 'success' : 'error'}">
-                    <span class="result-icon">${result.valid ? '✅' : '❌'}</span>
-                    <span>${result.message}</span>
+            <div class="space-y-4">
+                <!-- Summary Alert -->
+                <div class="alert ${result.valid ? 'alert-success' : 'alert-error'} shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        ${result.valid
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                        }
+                    </svg>
+                    <span class="font-semibold">${result.message}</span>
                 </div>
-                
-                <div class="result-details">
-                    <div class="result-section">
-                        <h4>Schema Validation</h4>
-                        <div class="status-item ${result.schema_valid ? 'success' : 'error'}">
-                            ${result.schema_valid ? '✅ Valid' : '❌ Invalid'}
+
+                <!-- Validation Stats - Compact Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="card bg-base-100 shadow border-l-4 ${result.schema_valid ? 'border-success' : 'border-error'}">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-base-content/60">Schema</h4>
+                                    <p class="text-xl font-bold ${result.schema_valid ? 'text-success' : 'text-error'}">
+                                        ${result.schema_valid ? 'Valid' : 'Invalid'}
+                                    </p>
+                                </div>
+                                <div class="${result.schema_valid ? 'text-success' : 'text-error'}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        ${result.schema_valid
+                                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                                        }
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="result-section">
-                        <h4>Business Rules</h4>
-                        <div class="status-item ${result.business_rules_valid ? 'success' : 'error'}">
-                            ${result.business_rules_valid ? '✅ Valid' : '❌ Invalid'}
+
+                    <div class="card bg-base-100 shadow border-l-4 ${result.business_rules_valid ? 'border-success' : 'border-error'}">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-base-content/60">Business Rules</h4>
+                                    <p class="text-xl font-bold ${result.business_rules_valid ? 'text-success' : 'text-error'}">
+                                        ${result.business_rules_valid ? 'Valid' : 'Invalid'}
+                                    </p>
+                                </div>
+                                <div class="${result.business_rules_valid ? 'text-success' : 'text-error'}">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        ${result.business_rules_valid
+                                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />'
+                                        }
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
+
                     ${result.errors && result.errors.length > 0 ? `
-                        <div class="result-section">
-                            <h4>Errors (${result.errors.length})</h4>
-                            ${this._renderErrorTabs(result)}
+                    <div class="card bg-base-100 shadow border-l-4 border-error">
+                        <div class="card-body p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-sm font-medium text-base-content/60">Errors</h4>
+                                    <p class="text-xl font-bold text-error">${result.errors.length}</p>
+                                </div>
+                                <div class="text-error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
+                    </div>
                     ` : ''}
                 </div>
+
+                <!-- Error Details -->
+                ${result.errors && result.errors.length > 0 ? `
+                    <div class="card bg-base-100 border border-error/20">
+                        <div class="card-body">
+                            <h3 class="card-title text-error flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                Validation Errors (${result.errors.length})
+                            </h3>
+                            ${this._renderErrorTabs(result)}
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
-        
+
         container.innerHTML = resultHtml;
     }
 
@@ -214,37 +327,35 @@ export class UIController {
         // Generate unique ID for this error tabs instance
         const tabsId = 'error-tabs-' + Date.now();
 
-        // Render tabs
+        // Render DaisyUI tabs
         const tabButtons = availableTabs.map((config, index) => {
             const count = errorsByType[config.key].length;
-            const isActive = index === 0 ? 'active' : '';
+            const isActive = index === 0 ? 'tab-active' : '';
             return `
-                <button class="error-tab-button ${isActive}"
+                <button class="tab tab-lifted ${isActive}"
                         data-tab-target="${tabsId}-${config.key}"
                         onclick="window.boostValidator.uiController.switchErrorTab('${tabsId}', '${config.key}')">
-                    <span class="error-tab-icon">${config.icon}</span>
-                    <span class="error-tab-label">${config.label}</span>
-                    <span class="error-tab-count">${count}</span>
+                    <span class="mr-1">${config.icon}</span>
+                    <span>${config.label}</span>
+                    <span class="badge badge-sm badge-error ml-2">${count}</span>
                 </button>
             `;
         }).join('');
 
         // Render tab contents
         const tabContents = availableTabs.map((config, index) => {
-            const isActive = index === 0 ? 'active' : '';
+            const isActive = index === 0 ? '' : 'hidden';
             const errors = errorsByType[config.key];
             return `
-                <div id="${tabsId}-${config.key}" class="error-tab-content ${isActive}">
-                    <div class="error-list">
-                        ${errors.map(error => this._formatErrorMessage(error)).join('')}
-                    </div>
+                <div id="${tabsId}-${config.key}" class="mt-4 space-y-3 ${isActive}">
+                    ${errors.map(error => this._formatErrorMessage(error)).join('')}
                 </div>
             `;
         }).join('');
 
         return `
             <div class="error-tabs-container" data-tabs-id="${tabsId}">
-                <div class="error-tabs">
+                <div class="tabs tabs-boxed bg-base-200 p-1">
                     ${tabButtons}
                 </div>
                 <div class="error-tabs-content">
@@ -255,29 +366,29 @@ export class UIController {
     }
 
     /**
-     * Switch between error tabs
+     * Switch between error tabs (DaisyUI style)
      */
     switchErrorTab(tabsId, tabKey) {
         const container = document.querySelector(`[data-tabs-id="${tabsId}"]`);
         if (!container) return;
 
-        // Update button states
-        const buttons = container.querySelectorAll('.error-tab-button');
+        // Update tab button states (DaisyUI tab-active class)
+        const buttons = container.querySelectorAll('.tab');
         buttons.forEach(btn => {
             if (btn.dataset.tabTarget === `${tabsId}-${tabKey}`) {
-                btn.classList.add('active');
+                btn.classList.add('tab-active');
             } else {
-                btn.classList.remove('active');
+                btn.classList.remove('tab-active');
             }
         });
 
-        // Update content visibility
-        const contents = container.querySelectorAll('.error-tab-content');
+        // Update content visibility (use hidden class)
+        const contents = container.querySelectorAll('[id^="' + tabsId + '-"]');
         contents.forEach(content => {
             if (content.id === `${tabsId}-${tabKey}`) {
-                content.classList.add('active');
+                content.classList.remove('hidden');
             } else {
-                content.classList.remove('active');
+                content.classList.add('hidden');
             }
         });
     }
@@ -335,14 +446,16 @@ export class UIController {
             }
 
             return `
-                <div class="error-item error-type-${errorType}">
-                    <div class="error-field">
-                        <span class="error-field-icon">${typeConfig.icon}</span>
-                        <strong>${escapeHtml(fieldName)}</strong>
-                        <span class="error-badge">${typeConfig.label}</span>
+                <div class="alert alert-error shadow-sm">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-lg">${typeConfig.icon}</span>
+                            <code class="text-sm font-semibold bg-error/10 px-2 py-0.5 rounded">${escapeHtml(fieldName)}</code>
+                            <span class="badge badge-sm badge-outline">${typeConfig.label}</span>
+                        </div>
+                        <p class="text-sm text-base-content/90">${escapeHtml(this._cleanErrorMessage(message, fieldName))}</p>
+                        ${extraInfo ? `<div class="mt-2 text-xs text-base-content/70">${extraInfo}</div>` : ''}
                     </div>
-                    <div class="error-message">${escapeHtml(this._cleanErrorMessage(message, fieldName))}</div>
-                    ${extraInfo}
                 </div>
             `;
         } else {

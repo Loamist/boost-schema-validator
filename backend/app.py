@@ -354,7 +354,12 @@ class BOOSTWebValidator:
 
 # Initialize validator with schema path
 # Check if running in Docker (schema mounted at /app/schema)
-SCHEMA_ROOT = "/app/schema" if os.path.exists("/app/schema") else "../schema"
+if os.path.exists("/app/schema"):
+    SCHEMA_ROOT = "/app/schema"
+elif os.path.exists("../BOOST/schema"):
+    SCHEMA_ROOT = "../BOOST/schema"
+else:
+    SCHEMA_ROOT = "../schema"
 validator = BOOSTWebValidator(SCHEMA_ROOT)
 
 @app.route('/')
@@ -416,7 +421,8 @@ def validate_entity():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5001))
     print("🚀 Starting BOOST Schema Validation Web Interface")
     print(f"Schema root: {SCHEMA_ROOT}")
-    print("Visit: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    print(f"Visit: http://localhost:{port}")
+    app.run(debug=True, host='0.0.0.0', port=port)

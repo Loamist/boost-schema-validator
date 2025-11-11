@@ -1,0 +1,231 @@
+/* Gap Analysis Styles */
+/* Styling for LCFS Demo Mode - Data Gap Analysis Display */
+
+.gap-analysis-container {
+    padding: 1.5rem;
+    background: var(--bg-primary, #ffffff);
+}
+
+/* Summary Section */
+.gap-summary {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.gap-summary h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary, #2c3e50);
+    font-size: 1.5rem;
+}
+
+.gap-subtitle {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-secondary, #7f8c8d);
+    font-size: 0.95rem;
+}
+
+/* Stats Cards */
+.gap-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background: var(--bg-secondary, #f8f9fa);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.status-valid {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.stat-card.status-invalid {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--text-primary, #2c3e50);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary, #7f8c8d);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Gap Sections */
+.gap-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--bg-secondary, #f8f9fa);
+    border-radius: 8px;
+    border-left: 4px solid var(--border-color, #e0e0e0);
+}
+
+.section-title {
+    margin: 0 0 1.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-title.success {
+    color: #28a745;
+    border-left-color: #28a745;
+}
+
+.section-title.warning {
+    color: #ffc107;
+    border-left-color: #ffc107;
+}
+
+/* Subsections */
+.subsection {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--bg-primary, #ffffff);
+    border-radius: 6px;
+    border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.subsection h5 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary, #2c3e50);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.subsection-description {
+    margin: 0 0 1rem 0;
+    color: var(--text-secondary, #7f8c8d);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Gap Tables */
+.gap-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.gap-table thead {
+    background: var(--bg-secondary, #f8f9fa);
+    border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.gap-table th {
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary, #2c3e50);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.gap-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color, #e0e0e0);
+    vertical-align: top;
+}
+
+.gap-table tbody tr:hover {
+    background: var(--bg-hover, #f0f0f0);
+}
+
+.gap-table code {
+    background: #f4f4f4;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.85em;
+    color: #e83e8c;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-required {
+    background: #dc3545;
+    color: white;
+}
+
+.badge-optional {
+    background: #6c757d;
+    color: white;
+}
+
+/* Open Questions */
+.open-question {
+    background: #fff3cd;
+    padding: 0.75rem;
+    border-left: 3px solid #ffc107;
+    font-style: italic;
+    color: #856404;
+}
+
+.question-icon {
+    font-size: 1.2em;
+    margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .gap-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gap-table {
+        font-size: 0.85rem;
+    }
+
+    .gap-table th,
+    .gap-table td {
+        padding: 0.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .gap-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .gap-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
