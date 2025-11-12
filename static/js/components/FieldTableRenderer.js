@@ -225,35 +225,35 @@ export class FieldTableRenderer {
             ? '<span class="badge badge-error badge-sm gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/></svg> Error</span>'
             : '<span class="badge badge-success badge-sm gap-1"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Valid</span>';
 
-        // DaisyUI badge for required status
+        // DaisyUI badge for required status (using warning color to avoid confusion with errors)
         const requiredStatus = fieldInfo.required
-            ? '<span class="badge badge-error badge-sm">Required</span>'
+            ? '<span class="badge badge-warning badge-sm">Required</span>'
             : '<span class="badge badge-ghost badge-sm">Optional</span>';
 
         const rowClass = hasError ? 'bg-error/5 hover:bg-error/10' : 'hover:bg-base-200';
 
-        // Format errors as DaisyUI alerts
+        // Format errors as compact text with icon
         const fieldErrors = hasError
             ? errorMap[field.path].map(error =>
-                `<div class="alert alert-error py-2 px-3 mt-1">
-                    <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                `<div class="flex items-start gap-1 text-error text-xs leading-tight mb-1">
+                    <svg class="w-3 h-3 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
-                    <span class="text-xs">${escapeHtml(error)}</span>
+                    <span class="break-words">${escapeHtml(error)}</span>
                 </div>`
               ).join('')
-            : '<span class="text-success text-sm">✓ No errors</span>';
+            : '<span class="text-success text-xs">✓ No errors</span>';
 
         const description = this._renderFieldDescription(fieldInfo);
 
         return `
             <tr class="${rowClass}" data-field-path="${field.path}">
-                <td class="text-center">${statusIcon}</td>
-                <td class="font-mono text-sm font-semibold">${escapeHtml(field.displayName)}</td>
-                <td class="text-center">${requiredStatus}</td>
-                <td class="font-mono text-sm ${hasError ? 'text-error' : 'text-base-content/80'}">${escapeHtml(field.displayValue)}</td>
-                <td class="text-sm text-base-content/70">${description}</td>
-                <td>${fieldErrors}</td>
+                <td class="text-center align-top">${statusIcon}</td>
+                <td class="text-xs font-semibold align-top break-words text-base-content/90">${escapeHtml(field.displayName)}</td>
+                <td class="text-center align-top">${requiredStatus}</td>
+                <td class="font-mono text-xs ${hasError ? 'text-error' : 'text-base-content/80'} align-top break-all">${escapeHtml(field.displayValue)}</td>
+                <td class="text-xs text-base-content/70 align-top">${description}</td>
+                <td class="align-top">${fieldErrors}</td>
             </tr>
         `;
     }
@@ -315,34 +315,44 @@ export class FieldTableRenderer {
                 `;
             } else {
                 // Short description, show inline
-                html += `<div class="text-xs">${escapeHtml(desc)}</div>`;
+                html += `<div class="text-xs leading-relaxed">${escapeHtml(desc)}</div>`;
                 if (fieldInfo.examples) {
-                    html += `<div class="badge badge-outline badge-sm mt-1">Ex: ${escapeHtml(fieldInfo.examples)}</div>`;
+                    html += `
+                        <div class="mt-2 p-2 bg-base-200/50 rounded border border-base-300 text-xs">
+                            <span class="font-semibold text-base-content/70">Ex:</span>
+                            <span class="text-base-content/80">${escapeHtml(fieldInfo.examples)}</span>
+                        </div>
+                    `;
                 }
             }
         } else if (fieldInfo.examples) {
-            html += `<div class="badge badge-outline badge-sm">Examples: ${escapeHtml(fieldInfo.examples)}</div>`;
+            html += `
+                <div class="p-2 bg-base-200/50 rounded border border-base-300 text-xs">
+                    <span class="font-semibold text-base-content/70">Examples:</span>
+                    <span class="text-base-content/80">${escapeHtml(fieldInfo.examples)}</span>
+                </div>
+            `;
         }
 
         return html;
     }
 
     /**
-     * Render the enhanced table HTML structure (DaisyUI table)
+     * Render the enhanced table HTML structure (DaisyUI table with optimized column widths)
      */
     _renderEnhancedTable(summaryHtml, tableRows) {
         return `
             ${summaryHtml}
             <div class="overflow-x-auto rounded-lg border border-base-300 shadow-sm">
-                <table class="table table-zebra table-sm">
+                <table class="table table-zebra enhanced-field-table">
                     <thead class="bg-base-200 text-base-content">
                         <tr>
-                            <th class="text-center">Status</th>
-                            <th>Field Name</th>
-                            <th class="text-center">Required</th>
-                            <th>Value</th>
-                            <th>Description & Examples</th>
-                            <th>Validation Errors</th>
+                            <th class="text-center w-20">Status</th>
+                            <th class="w-36">Field Name</th>
+                            <th class="text-center w-24">Required</th>
+                            <th class="w-64">Value</th>
+                            <th class="w-96">Description & Examples</th>
+                            <th class="w-40">Validation Errors</th>
                         </tr>
                     </thead>
                     <tbody>
