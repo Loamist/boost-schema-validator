@@ -47,13 +47,58 @@ class BOOSTWebValidator:
             schema_data = json.load(f)
             return schema_data.get('schema', schema_data)
     
-    def get_entity_example(self, entity_name: str) -> Dict[str, Any]:
-        """Load example data for an entity"""
-        entity_dir = ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower() 
+    def get_entity_examples(self, entity_name: str) -> List[Dict[str, Any]]:
+        """Load all available example files for an entity"""
+        entity_dir = ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower()
                              for i, c in enumerate(entity_name)])
-        
+
+        entity_path = self.schema_root / entity_dir
+        examples = []
+
+        if entity_path.exists():
+            # Find all JSON files that aren't the schema
+            for json_file in entity_path.glob("*.json"):
+                if json_file.stem != "validation_schema":
+                    with open(json_file, 'r') as f:
+                        example_data = json.load(f)
+                        examples.append({
+                            "name": self._format_example_name(json_file.stem, entity_dir),
+                            "filename": json_file.stem,
+                            "data": example_data
+                        })
+
+        return examples
+
+    def _format_example_name(self, filename: str, entity_prefix: str) -> str:
+        """Format example filename to user-friendly name"""
+        # Remove entity prefix
+        name = filename.replace(f"{entity_prefix}_", "")
+
+        # Special formatting for known suffixes
+        name_map = {
+            "example": "Standard Example",
+            "carb_minimal": "CARB Minimal (Required Fields Only)",
+            "afp_example": "AFP Submission Example",
+            "marathon_q2_2025": "Marathon Q2 2025"
+        }
+
+        return name_map.get(name, name.replace('_', ' ').title())
+
+    def get_entity_example(self, entity_name: str, example_name: str = None) -> Dict[str, Any]:
+        """Load example data for an entity (supports specific example selection)"""
+        entity_dir = ''.join(['_' + c.lower() if c.isupper() and i > 0 else c.lower()
+                             for i, c in enumerate(entity_name)])
+
+        # If specific example requested, load that
+        if example_name:
+            example_file = self.schema_root / entity_dir / f"{example_name}.json"
+            if example_file.exists():
+                with open(example_file, 'r') as f:
+                    return json.load(f)
+
+        # Otherwise load default example
         example_file = self.schema_root / entity_dir / f"{entity_dir}_example.json"
-        
+
         if example_file.exists():
             with open(example_file, 'r') as f:
                 return json.load(f)
@@ -385,11 +430,21 @@ def get_entity_schema(entity_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 404
 
-@app.route('/api/entity/<entity_name>/example')
-def get_entity_example(entity_name):
-    """Get example data for a specific entity"""
+@app.route('/api/entity/<entity_name>/examples')
+def get_entity_examples_list(entity_name):
+    """Get list of available examples for a specific entity"""
     try:
-        example = validator.get_entity_example(entity_name)
+        examples = validator.get_entity_examples(entity_name)
+        return jsonify(examples)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 404
+
+@app.route('/api/entity/<entity_name>/example')
+@app.route('/api/entity/<entity_name>/example/<example_name>')
+def get_entity_example_route(entity_name, example_name=None):
+    """Get example data for a specific entity (optionally by example name)"""
+    try:
+        example = validator.get_entity_example(entity_name, example_name)
         return jsonify(example)
     except Exception as e:
         return jsonify({"error": str(e)}), 404

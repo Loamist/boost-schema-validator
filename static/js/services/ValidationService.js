@@ -49,11 +49,47 @@ export class ValidationService {
         try {
             const response = await fetch(`/api/entity/${entityName}/example`);
             const data = await response.json();
-            
+
             if (data.error) {
                 throw new Error('No example available: ' + data.error);
             }
-            
+
+            return data;
+        } catch (error) {
+            throw new Error('Failed to load example: ' + error.message);
+        }
+    }
+
+    /**
+     * Get list of available examples for a specific entity
+     */
+    async getEntityExamples(entityName) {
+        try {
+            const response = await fetch(`/api/entity/${entityName}/examples`);
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error('Failed to load examples list: ' + data.error);
+            }
+
+            return data;
+        } catch (error) {
+            throw new Error('Failed to load examples: ' + error.message);
+        }
+    }
+
+    /**
+     * Get specific example data by filename for an entity
+     */
+    async getSpecificExample(entityName, exampleName) {
+        try {
+            const response = await fetch(`/api/entity/${entityName}/example/${exampleName}`);
+            const data = await response.json();
+
+            if (data.error) {
+                throw new Error('No example available: ' + data.error);
+            }
+
             return data;
         } catch (error) {
             throw new Error('Failed to load example: ' + error.message);

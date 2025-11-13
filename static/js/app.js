@@ -19,9 +19,7 @@ class BOOSTValidator {
         });
 
         // Buttons
-        document.getElementById('loadExampleBtn').addEventListener('click', () => {
-            this.loadExample();
-        });
+        // Note: Load Example is now handled by dropdown in BOOSTValidator.js
 
         document.getElementById('loadSchemaBtn').addEventListener('click', () => {
             this.showSchema();
@@ -102,10 +100,10 @@ class BOOSTValidator {
     handleEntityChange(entityName) {
         this.currentEntity = entityName;
         const hasEntity = entityName !== '';
-        
-        document.getElementById('loadExampleBtn').disabled = !hasEntity;
+
+        document.getElementById('exampleDropdownBtn').disabled = !hasEntity;
         document.getElementById('loadSchemaBtn').disabled = !hasEntity;
-        
+
         this.updateValidateButton();
         this.clearResults();
     }

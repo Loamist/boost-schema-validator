@@ -1,0 +1,458 @@
+Entity Name,Field Name,Type,Required,Description,Foreign Key
+,,,,,
+=== CORE TRACEABILITY ENTITIES ===,,,,,
+,,,,,
+TraceableUnit,traceableUnitId,string,YES,Unique identifier for the fundamental traceability unit,NO
+TraceableUnit,uniqueIdentifier,string,YES,Business identifier (log number tag barcode QR code),NO
+TraceableUnit,unitType,enum,YES,Type of traceable unit (individual_log pile volume_aggregation processed_batch),NO
+TraceableUnit,totalVolumeM3,number,YES,Total volume in cubic meters,NO
+TraceableUnit,productClassification,enum,NO,Product type (sawlog pulpwood biomass chips firewood veneer_log post_pole),NO
+TraceableUnit,qualityGrade,enum,NO,Quality classification (Grade-A through Grade-D Premium Standard),NO
+TraceableUnit,isMultiSpecies,boolean,YES,Whether unit contains multiple wood species,NO
+TraceableUnit,identificationConfidence,number,NO,Confidence score for identification (0-100),NO
+TraceableUnit,methodReadinessLevel,integer,NO,Technology Readiness Level for identification method (1-9),NO
+TraceableUnit,secondaryIdentifiers,array,NO,Additional identification methods and values,NO
+TraceableUnit,physicalArrangement,object,NO,Storage arrangement (type exposure ground contact),NO
+TraceableUnit,alternativeFateMetrics,object,NO,Alternative baseline scenario metrics (decay rate carbon impact),NO
+TraceableUnit,createdTimestamp,date-time,YES,When the traceable unit was first created,NO
+TraceableUnit,currentStatus,enum,NO,Current state (active processed delivered consumed),NO
+TraceableUnit,sustainabilityCertification,string,NO,Certification status or reference,NO
+TraceableUnit,attachedInformation,array,NO,Additional metadata or documentation references,NO
+TraceableUnit,lastUpdated,date-time,NO,Timestamp of last modification,NO
+TraceableUnit,processingHistory,array,NO,Array of processing operation references,YES (ProcessingHistory)
+TraceableUnit,parentTraceableUnitId,string,NO,Reference to parent unit for splits/transformations,YES (TraceableUnit)
+TraceableUnit,childTraceableUnitIds,array,NO,References to child units created from splits,YES (TraceableUnit)
+TraceableUnit,currentGeographicDataId,string,NO,Current location of the traceable unit,YES (GeographicData)
+TraceableUnit,harvestGeographicDataId,string,YES,Original harvest location (required for origin tracking),YES (GeographicData)
+TraceableUnit,harvesterId,string,YES,Organization that performed the harvest,YES (Organization)
+TraceableUnit,operatorId,string,NO,Individual operator who handled the unit,YES (Operator)
+TraceableUnit,materialTypeId,string,YES,Type of material (wood species category),YES (Material)
+TraceableUnit,identificationMethodId,string,NO,Method used for identification (RFID QR barcode biometric),YES (IdentificationMethod)
+,,,,,
+BiometricIdentifier,biometricId,string,YES,Unique identifier for biometric signature,NO
+BiometricIdentifier,biometricSignature,string,YES,Unique biometric pattern data,NO
+BiometricIdentifier,captureMethod,enum,YES,How biometric was captured (optical_scanner photo_analysis manual_photo visual_inspection),NO
+BiometricIdentifier,confidenceScore,number,YES,Confidence in biometric match (0-100),NO
+BiometricIdentifier,fallbackRequired,boolean,YES,Whether fallback identification is needed,NO
+BiometricIdentifier,captureTimestamp,date-time,YES,When biometric was captured,NO
+BiometricIdentifier,captureConditions,string,NO,Environmental conditions during capture,NO
+BiometricIdentifier,deviceType,string,NO,Type of capture device used,NO
+BiometricIdentifier,deviceSerialNumber,string,NO,Serial number of capture device,NO
+BiometricIdentifier,qualityMetrics,object,NO,Quality assessment of biometric capture,NO
+BiometricIdentifier,traceableUnitId,string,YES,Reference to the traceable unit being identified,YES (TraceableUnit)
+BiometricIdentifier,captureGeographicDataId,string,NO,Location where biometric was captured,YES (GeographicData)
+BiometricIdentifier,trackingPointId,string,NO,Tracking point where capture occurred,YES (TrackingPoint)
+,,,,,
+TrackingPoint,trackingPointId,string,YES,Unique identifier for the tracking location,NO
+TrackingPoint,trackingPointName,string,YES,Name of the tracking point,NO
+TrackingPoint,trackingPointType,enum,YES,Type of location (harvest_site skid_road forest_road mill_entrance processing_facility),NO
+TrackingPoint,description,string,NO,Additional details about the tracking point,NO
+TrackingPoint,accessRestrictions,string,NO,Access limitations or requirements,NO
+TrackingPoint,operatingHours,string,NO,Hours of operation,NO
+TrackingPoint,geographicDataId,string,YES,Physical location of the tracking point,YES (GeographicData)
+TrackingPoint,organizationId,string,YES,Organization that manages this tracking point,YES (Organization)
+,,,,,
+LocationHistory,locationHistoryId,string,YES,Unique identifier for location history record,NO
+LocationHistory,timestamp,date-time,YES,When the location was recorded,NO
+LocationHistory,movementType,enum,NO,Type of movement (transport processing storage delivery),NO
+LocationHistory,notes,string,NO,Additional movement details,NO
+LocationHistory,traceableUnitId,string,YES,Reference to the unit being tracked,YES (TraceableUnit)
+LocationHistory,geographicDataId,string,YES,Location at this point in time,YES (GeographicData)
+,,,,,
+MeasurementRecord,recordId,string,YES,Unique identifier for the measurement,NO
+MeasurementRecord,volumeM3,number,YES,Measured volume in cubic meters,NO
+MeasurementRecord,measurementMethod,enum,YES,How measurement was taken (manual_scale optical_scanner load_cell truck_scale),NO
+MeasurementRecord,measurementTimestamp,date-time,YES,When measurement was taken,NO
+MeasurementRecord,accuracy,number,NO,Measurement accuracy in percentage,NO
+MeasurementRecord,calibrationDate,date,NO,Last calibration date of measurement equipment,NO
+MeasurementRecord,notes,string,NO,Additional measurement details,NO
+MeasurementRecord,traceableUnitId,string,YES,Reference to the unit being measured,YES (TraceableUnit)
+MeasurementRecord,trackingPointId,string,NO,Location where measurement occurred,YES (TrackingPoint)
+,,,,,
+IdentificationMethod,methodId,string,YES,Unique identifier for the identification method,NO
+IdentificationMethod,methodName,string,YES,Name of the identification method,NO
+IdentificationMethod,methodType,enum,YES,Type of method (RFID QR_code barcode biometric trip_ticket),NO
+IdentificationMethod,technologyReadinessLevel,integer,YES,TRL rating from 1-9,NO
+IdentificationMethod,typicalConfidence,number,YES,Expected confidence level (0-100),NO
+IdentificationMethod,description,string,NO,Detailed description of the method,NO
+IdentificationMethod,costPerUnit,number,NO,Typical cost per unit,NO
+IdentificationMethod,implementationComplexity,enum,NO,Implementation difficulty (low medium high),NO
+,,,,,
+,,,,,
+=== ORGANIZATIONAL ENTITIES ===,,,,,
+,,,,,
+Organization,organizationId,string,YES,Unique identifier for the organization,NO
+Organization,organizationName,string,YES,Legal name of the organization,NO
+Organization,organizationType,enum,YES,Type (harvester processor certifier transporter supplier manufacturer producer importer blender distributor),NO
+Organization,contactEmail,email,NO,Primary contact email address,NO
+Organization,contactPhone,string,NO,Primary contact phone number,NO
+Organization,establishedDate,date,NO,Date organization was established,NO
+Organization,taxId,string,NO,Tax identification number,NO
+Organization,website,uri,NO,Organization website URL,NO
+Organization,lcfsRegistrationId,string,NO,CARB LCFS registration identifier (external reference),NO
+Organization,regulatedEntityType,enum,NO,LCFS classification (producer importer blender distributor not_regulated),NO
+Organization,facilityCapacity,object,NO,Annual production or handling capacity with unit,NO
+Organization,bioramRegistrationId,string,NO,CEC BioRAM registration identifier (external reference),NO
+Organization,bioramFacilityId,string,NO,BioRAM facility identifier (external reference),NO
+Organization,bioramContractId,string,NO,BioRAM procurement contract identifier (external reference),NO
+Organization,powerPurchaseAgreementId,string,NO,Power purchase agreement identifier with utility,NO
+Organization,utilityOfftaker,string,NO,Utility company purchasing power under BioRAM,NO
+Organization,gridInterconnectionPoint,string,NO,Grid interconnection substation location,NO
+Organization,airDistrictPermit,string,NO,Air quality management district permit identifier,NO
+Organization,californiaSRA,boolean,NO,Whether within California State Responsibility Area,NO
+Organization,bioramEligibilityStatus,enum,NO,BioRAM program status (qualified pending suspended not_eligible),NO
+Organization,fireHazardZoneDesignation,enum,NO,CAL FIRE fire hazard severity (Very High High Moderate Low),NO
+Organization,calFireJurisdiction,string,NO,CAL FIRE unit or jurisdiction for facility,NO
+Organization,operationalStatus,enum,NO,Current status (active inactive suspended under_construction),NO
+Organization,lastUpdated,date-time,NO,Timestamp of most recent update,NO
+Organization,primaryGeographicDataId,string,NO,Primary operational location,YES (GeographicData)
+Organization,operationalAreas,array,NO,List of geographic areas where organization operates,YES (GeographicData)
+Organization,certifications,array,NO,List of certification IDs held by organization,YES (Certificate)
+,,,,,
+Operator,operatorId,string,YES,Unique identifier for the operator,NO
+Operator,operatorName,string,YES,Name of the individual operator,NO
+Operator,operatorType,enum,YES,Type of operator (harvester truck_driver equipment_operator inspector),NO
+Operator,licenseNumber,string,NO,Professional license or certification number,NO
+Operator,contactEmail,email,NO,Operator contact email,NO
+Operator,contactPhone,string,NO,Operator contact phone,NO
+Operator,certifications,array,NO,Professional certifications held,NO
+Operator,activeStatus,enum,NO,Current employment status (active inactive suspended),NO
+Operator,organizationId,string,YES,Organization that employs this operator,YES (Organization)
+,,,,,
+Customer,customerId,string,YES,Unique identifier for the customer,NO
+Customer,customerName,string,YES,Name of the customer organization,NO
+Customer,customerType,enum,NO,Type of customer (wholesaler retailer end_user manufacturer),NO
+Customer,contactEmail,email,NO,Customer contact email,NO
+Customer,contactPhone,string,NO,Customer contact phone,NO
+Customer,paymentTerms,string,NO,Standard payment terms for this customer,NO
+Customer,creditLimit,number,NO,Credit limit for customer,NO
+Customer,primaryGeographicDataId,string,NO,Customer primary location,YES (GeographicData)
+,,,,,
+Supplier,supplierId,string,YES,Unique identifier for the supplier,NO
+Supplier,supplierName,string,YES,Name of the supplier organization,NO
+Supplier,supplierType,enum,NO,Type of supplier (raw_material equipment services),NO
+Supplier,contactEmail,email,NO,Supplier contact email,NO
+Supplier,contactPhone,string,NO,Supplier contact phone,NO
+Supplier,paymentTerms,string,NO,Standard payment terms,NO
+Supplier,qualityRating,number,NO,Supplier quality score (0-100),NO
+Supplier,primaryGeographicDataId,string,NO,Supplier primary location,YES (GeographicData)
+,,,,,
+Equipment,equipmentId,string,YES,Unique identifier for the equipment,NO
+Equipment,equipmentType,enum,YES,Type (harvester forwarder loader scanner chipper debarker truck trailer),NO
+Equipment,equipmentName,string,YES,Name or designation of equipment,NO
+Equipment,manufacturer,string,NO,Equipment manufacturer,NO
+Equipment,model,string,NO,Equipment model,NO
+Equipment,serialNumber,string,NO,Manufacturer serial number,NO
+Equipment,purchaseDate,date,NO,Date equipment was purchased,NO
+Equipment,lastMaintenanceDate,date,NO,Date of last maintenance,NO
+Equipment,operationalStatus,enum,NO,Current status (active maintenance retired),NO
+Equipment,organizationId,string,YES,Organization that owns the equipment,YES (Organization)
+Equipment,geographicDataId,string,NO,Current location of equipment,YES (GeographicData)
+,,,,,
+,,,,,
+=== GEOGRAPHIC DATA ENTITY ===,,,,,
+,,,,,
+GeographicData,geographicDataId,string,YES,Unique identifier for geographic data,NO
+GeographicData,geoJsonData,object,YES,GeoJSON geometry (Point Polygon LineString),NO
+GeographicData,dataType,enum,YES,Type (harvest_site processing_location administrative_boundary supply_base_area),NO
+GeographicData,description,string,NO,Description of the location,NO
+GeographicData,coordinateSystem,string,NO,Coordinate system used (default WGS84),NO
+GeographicData,accuracy,number,NO,Position accuracy in meters,NO
+GeographicData,elevationM,number,NO,Elevation in meters,NO
+GeographicData,administrativeRegion,string,NO,Administrative region (county state),NO
+GeographicData,landOwnership,string,NO,Land ownership type (private public tribal),NO
+GeographicData,notes,string,NO,Additional location notes,NO
+,,,,,
+,,,,,
+=== MATERIAL & PROCESSING ENTITIES ===,,,,,
+,,,,,
+Material,materialTypeId,string,YES,Unique identifier for material type,NO
+Material,materialName,string,YES,Common name of the material,NO
+Material,materialCategory,enum,YES,Category (softwood hardwood mixed),NO
+Material,defaultAssortmentTypes,string,NO,Standard assortment classifications,NO
+Material,standardQualityGrades,string,NO,Quality grading standards,NO
+Material,carbonStorageRate,string,NO,Carbon storage characteristics,NO
+Material,density,string,NO,Material density characteristics,NO
+Material,standardMoistureContent,string,NO,Typical moisture content range,NO
+Material,energyContent,string,NO,Energy content characteristics,NO
+Material,typicalSpecies,array,NO,Common species for this material type,NO
+Material,applicableProcessingTypes,array,NO,Processing methods applicable to this material,NO
+,,,,,
+MaterialProcessing,processingId,string,YES,Unique identifier for processing operation,NO
+MaterialProcessing,processingType,enum,YES,Type (felling delimbing crosscutting chipping debarking sawing drying pelletizing),NO
+MaterialProcessing,timestamp,date-time,YES,When processing occurred,NO
+MaterialProcessing,volumeInputM3,number,NO,Input volume in cubic meters,NO
+MaterialProcessing,volumeOutputM3,number,NO,Output volume in cubic meters,NO
+MaterialProcessing,processingNotes,string,NO,Additional processing details,NO
+MaterialProcessing,qualityAfterProcessing,enum,NO,Quality grade after processing,NO
+MaterialProcessing,traceableUnitId,string,YES,Reference to unit being processed,YES (TraceableUnit)
+MaterialProcessing,operatorId,string,NO,Operator who performed processing,YES (Operator)
+MaterialProcessing,geographicDataId,string,NO,Location where processing occurred,YES (GeographicData)
+,,,,,
+ProcessingHistory,processingHistoryId,string,YES,Unique identifier for processing history,NO
+ProcessingHistory,processingSequence,array,YES,Ordered list of processing operations,NO
+ProcessingHistory,totalProcessingTime,number,NO,Total processing time in hours,NO
+ProcessingHistory,notes,string,NO,Overall processing notes,NO
+ProcessingHistory,traceableUnitId,string,YES,Reference to the traceable unit,YES (TraceableUnit)
+,,,,,
+SpeciesComponent,componentId,string,YES,Unique identifier for species component,NO
+SpeciesComponent,species,string,YES,Scientific or common name of species,NO
+SpeciesComponent,percentageVolume,number,YES,Percentage of total volume (0-100),NO
+SpeciesComponent,notes,string,NO,Additional species information,NO
+SpeciesComponent,traceableUnitId,string,YES,Reference to multi-species traceable unit,YES (TraceableUnit)
+SpeciesComponent,geographicDataId,string,NO,Origin location for this species,YES (GeographicData)
+,,,,,
+MoistureContent,moistureContentId,string,YES,Unique identifier for moisture record,NO
+MoistureContent,moisturePercentage,number,YES,Moisture content percentage (0-100),NO
+MoistureContent,measurementMethod,enum,YES,Method (oven_dry resistance_meter capacitance_meter),NO
+MoistureContent,measurementDate,date-time,YES,When measurement was taken,NO
+MoistureContent,sampleSize,string,NO,Size or weight of sample tested,NO
+MoistureContent,traceableUnitId,string,YES,Reference to the traceable unit,YES (TraceableUnit)
+,,,,,
+EnergyCarbonData,energyCarbonDataId,string,YES,Unique identifier for energy/carbon data,NO
+EnergyCarbonData,dataType,enum,YES,Type (carbon_intensity energy_content emissions_factor moisture),NO
+EnergyCarbonData,value,number,YES,Measured value,NO
+EnergyCarbonData,unit,string,YES,Unit of measurement (gCO2e/MJ MJ/kg etc),NO
+EnergyCarbonData,measurementMethod,enum,NO,How value was determined (lab_test calculation estimation),NO
+EnergyCarbonData,measurementDate,date,NO,Date of measurement or calculation,NO
+EnergyCarbonData,notes,string,NO,Additional context,NO
+EnergyCarbonData,traceableUnitId,string,NO,Reference to traceable unit,YES (TraceableUnit)
+,,,,,
+,,,,,
+=== BUSINESS TRANSACTION ENTITIES ===,,,,,
+,,,,,
+Transaction,transactionId,string,YES,Unique identifier for the business transaction,NO
+Transaction,transactionDate,date,YES,Date of business agreement,NO
+Transaction,contractValue,number,YES,Total monetary value of the transaction,NO
+Transaction,contractCurrency,enum,YES,Currency code (USD EUR GBP CAD JPY AUD CHF SEK NOK),NO
+Transaction,contractTerms,enum,NO,Incoterms delivery conditions (FOB CIF DDP EXW FCA CPT DAP FAS),NO
+Transaction,paymentTerms,string,NO,Payment conditions and timeline,NO
+Transaction,transactionStatus,enum,YES,Current status (pending confirmed delivered completed cancelled disputed),NO
+Transaction,contractSignedDate,date,NO,Date when contract was executed,NO
+Transaction,expectedDeliveryDate,date,NO,Expected completion/delivery date,NO
+Transaction,complianceRequirements,array,NO,Regulatory requirements (FSC_Chain_of_Custody LCFS_Reporting EU_RED_Compliance),NO
+Transaction,financialTerms,object,NO,Detailed financial terms (down payment retention late fees discounts),NO
+Transaction,riskManagement,object,NO,Risk terms (force majeure quality guarantees insurance dispute resolution),NO
+Transaction,fuelVolume,number,NO,Volume of fuel in transaction for LCFS reporting,NO
+Transaction,fuelVolumeUnit,enum,NO,Unit (gallons liters GGE),NO
+Transaction,fuelCategory,enum,NO,Fuel type (renewable_diesel ethanol biodiesel sustainable_aviation_fuel),NO
+Transaction,reportingPeriod,string,NO,LCFS reporting quarter (YYYY-QN format),NO
+Transaction,regulatedPartyRole,enum,NO,LCFS role (producer importer blender distributor not_applicable),NO
+Transaction,biomassVolume,number,NO,Volume of biomass fuel for BioRAM reporting,NO
+Transaction,biomassVolumeUnit,enum,NO,Unit (bone_dry_tonnes green_tonnes cubic_yards),NO
+Transaction,fuelType,enum,NO,BioRAM fuel type (lumber_mill_residual forest_harvest_residual agricultural_residue),NO
+Transaction,fuelOriginCoordinates,object,NO,Geographic coordinates of biomass fuel origin,NO
+Transaction,fuelOriginFacilityId,string,NO,Identifier for source facility or harvest site,NO
+Transaction,withinSRA,boolean,NO,Whether fuel source is within California SRA,NO
+Transaction,fireHazardSeverityZone,enum,NO,CAL FIRE designation (Very High High Moderate Low),NO
+Transaction,fhszVerificationSource,string,NO,Source of fire hazard zone verification,NO
+Transaction,bioramEligible,boolean,NO,Whether transaction meets BioRAM eligibility,NO
+Transaction,haulDistance,number,NO,Transportation distance from source to facility in miles,NO
+Transaction,haulUnit,enum,NO,Unit (miles kilometers),NO
+Transaction,landowner,string,NO,Legal landowner of biomass source location,NO
+Transaction,parcelId,string,NO,Assessor parcel number or legal land description,NO
+Transaction,calFirePermitNumber,string,NO,CAL FIRE permit number for harvest activities,NO
+Transaction,permitStatus,enum,NO,Permit status (active expired pending not_required),NO
+Transaction,timberHarvestPlan,string,NO,Timber harvest plan identifier if applicable,NO
+Transaction,bioramCertificationId,string,NO,BioRAM compliance certification identifier,NO
+Transaction,attestationSignatory,string,NO,Name and title of person attesting to BioRAM compliance,NO
+Transaction,attestationDate,date,NO,Date of BioRAM compliance attestation,NO
+Transaction,materialEligibilityConfirmed,boolean,NO,Confirmation of BioRAM eligibility criteria,NO
+Transaction,reportingAccuracyConfirmed,boolean,NO,Confirmation of reporting data accuracy,NO
+Transaction,reconciliationStatus,enum,NO,Reconciliation status (pending resolved disputed investigating),NO
+Transaction,manipulationTimestamps,array,NO,Processing step timestamps,NO
+Transaction,mediaBreaksDetected,array,NO,Continuity flags per TRU,NO
+Transaction,speciesCompositionAtTransaction,array,NO,Species breakdown at transaction time,NO
+Transaction,lastUpdated,date-time,NO,Timestamp of last modification,NO
+Transaction,OrganizationId,string,YES,Primary organization (seller/supplier),YES (Organization)
+Transaction,CustomerId,string,YES,Customer organization (buyer),YES (Customer)
+Transaction,SalesDeliveryDocumentId,string,NO,Sales/delivery documentation reference,YES (SalesDeliveryDocument)
+Transaction,GeographicDataId,string,NO,Primary transaction location,YES (GeographicData)
+Transaction,BrokerOrganizationId,string,NO,Optional intermediary broker organization,YES (Organization)
+Transaction,LcfsPathwayId,string,NO,CARB-certified pathway for LCFS compliance,YES (LcfsPathway)
+Transaction,BioramPathwayId,string,NO,BioRAM pathway for biomass power generation,YES (BioramPathway)
+Transaction,traceableUnitIds,array,NO,TRUs included in this transaction,YES (TraceableUnit)
+Transaction,trackingPointIds,array,NO,Location trail references,YES (TrackingPoint)
+,,,,,
+TransactionBatch,transactionBatchId,string,YES,Unique identifier for transaction batch,NO
+TransactionBatch,batchDate,date,YES,Date batch was created,NO
+TransactionBatch,batchName,string,NO,Name or description of batch,NO
+TransactionBatch,batchStatus,enum,NO,Status (open closed reconciled),NO
+TransactionBatch,notes,string,NO,Batch notes,NO
+TransactionBatch,transactionIds,array,YES,Array of transactions in this batch,YES (Transaction)
+,,,,,
+SalesDeliveryDocument,documentId,string,YES,Unique identifier for document,NO
+SalesDeliveryDocument,documentType,enum,YES,Type (sales_invoice delivery_receipt bill_of_lading packing_slip),NO
+SalesDeliveryDocument,documentDate,date,YES,Date of document,NO
+SalesDeliveryDocument,documentNumber,string,NO,Document number or reference,NO
+SalesDeliveryDocument,documentUrl,uri,NO,URL or path to document file,NO
+SalesDeliveryDocument,notes,string,NO,Additional document notes,NO
+SalesDeliveryDocument,transactionId,string,NO,Reference to associated transaction,YES (Transaction)
+,,,,,
+ProductGroup,productGroupId,string,YES,Unique identifier for product group,NO
+ProductGroup,productGroupName,string,YES,Name of the product group,NO
+ProductGroup,groupType,enum,NO,Type (shipment order batch inventory_lot),NO
+ProductGroup,creationDate,date,NO,When group was created,NO
+ProductGroup,description,string,NO,Description of product group,NO
+ProductGroup,traceableUnitIds,array,YES,Array of TRUs in this product group,YES (TraceableUnit)
+,,,,,
+,,,,,
+=== CERTIFICATION & COMPLIANCE ENTITIES ===,,,,,
+,,,,,
+Certificate,certificateNumber,string,YES,Unique certificate identifier,NO
+Certificate,certificateType,enum,YES,Type (FSC PEFC SFI SBP ISO ISCC),NO
+Certificate,issueDate,date,YES,Date certificate was issued,NO
+Certificate,expiryDate,date,YES,Date certificate expires,NO
+Certificate,certificateStatus,enum,YES,Status (active suspended expired),NO
+Certificate,scope,string,NO,Scope of certification,NO
+Certificate,accreditationBody,string,NO,Organization that accredited the certifier,NO
+Certificate,certificateUrl,uri,NO,URL to certificate document,NO
+Certificate,certificationSchemeId,string,YES,Reference to certification scheme,YES (CertificationScheme)
+Certificate,organizationId,string,YES,Organization holding the certificate,YES (Organization)
+,,,,,
+CertificationScheme,certificationSchemeId,string,YES,Unique identifier for certification scheme,NO
+CertificationScheme,schemeName,string,YES,Name of the certification scheme,NO
+CertificationScheme,schemeType,enum,YES,Type (forest_management chain_of_custody sustainability),NO
+CertificationScheme,schemeVersion,string,NO,Version of the scheme,NO
+CertificationScheme,requirements,object,NO,Detailed scheme requirements,NO
+CertificationScheme,standardUrl,uri,NO,URL to scheme standards,NO
+CertificationScheme,description,string,NO,Description of the scheme,NO
+,,,,,
+CertificationBody,cbId,string,YES,Unique identifier for certification body,NO
+CertificationBody,certificationBodyName,string,YES,Name of the certification body,NO
+CertificationBody,accreditationAuthority,string,YES,Organization that accredits this body,NO
+CertificationBody,authorizedSchemes,array,YES,Certification schemes this body is authorized for,NO
+CertificationBody,contactEmail,email,NO,Contact email for certification body,NO
+CertificationBody,website,uri,NO,Certification body website,NO
+CertificationBody,accreditationStatus,enum,NO,Status (active suspended expired),NO
+,,,,,
+Audit,auditId,string,YES,Unique identifier for audit,NO
+Audit,auditType,enum,YES,Type (Initial Surveillance Transfer Special),NO
+Audit,auditDate,date,YES,Date audit was conducted,NO
+Audit,auditStatus,enum,NO,Status (scheduled in_progress completed),NO
+Audit,findings,string,NO,Audit findings and observations,NO
+Audit,nonConformities,array,NO,List of non-conformities found,NO
+Audit,correctiveActions,string,NO,Required corrective actions,NO
+Audit,auditReport,uri,NO,URL to audit report,NO
+Audit,organizationId,string,YES,Organization being audited,YES (Organization)
+Audit,cbId,string,YES,Certification body performing audit,YES (CertificationBody)
+Audit,auditGeographicDataId,string,NO,Location where audit was conducted,YES (GeographicData)
+,,,,,
+Claim,claimId,string,YES,Unique identifier for claim,NO
+Claim,claimType,enum,YES,Type (sustainability chain_of_custody carbon_neutrality renewable_content),NO
+Claim,claimStatement,string,YES,The claim being made,NO
+Claim,claimStatus,enum,YES,Status (verified pending rejected),NO
+Claim,verificationDate,date,NO,Date claim was verified,NO
+Claim,notes,string,NO,Additional claim details,NO
+Claim,traceableUnitId,string,NO,Reference to traceable unit for the claim,YES (TraceableUnit)
+Claim,certificateNumber,string,NO,Supporting certificate reference,YES (Certificate)
+,,,,,
+VerificationStatement,statementId,string,YES,Unique identifier for verification statement,NO
+VerificationStatement,verificationBody,string,YES,Organization that performed verification,NO
+VerificationStatement,statementDate,date,YES,Date of verification statement,NO
+VerificationStatement,statementType,enum,NO,Type (third_party self_assessment independent_audit),NO
+VerificationStatement,statementUrl,uri,NO,URL to verification statement document,NO
+VerificationStatement,findings,string,NO,Verification findings,NO
+VerificationStatement,certificateNumber,string,NO,Related certificate reference,YES (Certificate)
+,,,,,
+,,,,,
+=== SUPPLY BASE MANAGEMENT ENTITIES ===,,,,,
+,,,,,
+SupplyBase,supplyBaseId,string,YES,Unique identifier for supply base,NO
+SupplyBase,supplyBaseName,string,YES,Name of the supply base,NO
+SupplyBase,description,string,NO,Description of supply base area and characteristics,NO
+SupplyBase,totalAreaHa,number,NO,Total area in hectares,NO
+SupplyBase,establishedDate,date,NO,Date supply base was established,NO
+SupplyBase,status,enum,NO,Status (active inactive under_review),NO
+SupplyBase,geographicDataId,string,YES,Geographic boundary of supply base,YES (GeographicData)
+SupplyBase,organizationId,string,YES,Organization managing the supply base,YES (Organization)
+SupplyBase,certificationSchemeId,string,NO,Applicable certification scheme,YES (CertificationScheme)
+,,,,,
+SupplyBaseReport,sbrId,string,YES,Unique identifier for supply base report,NO
+SupplyBaseReport,reportingPeriod,string,YES,Reporting period (e.g. 2024-Q1),NO
+SupplyBaseReport,reportDate,date,YES,Date report was generated,NO
+SupplyBaseReport,totalVolume,number,NO,Total volume harvested in period,NO
+SupplyBaseReport,riskAssessment,object,NO,Risk assessment results,NO
+SupplyBaseReport,complianceStatus,enum,NO,Compliance status (compliant non_compliant pending),NO
+SupplyBaseReport,reportUrl,uri,NO,URL to full report document,NO
+SupplyBaseReport,supplyBaseId,string,YES,Reference to supply base,YES (SupplyBase)
+,,,,,
+MassBalanceAccount,accountId,string,YES,Unique identifier for mass balance account,NO
+MassBalanceAccount,accountType,enum,YES,Type (input output inventory credit),NO
+MassBalanceAccount,balance,number,YES,Current balance value,NO
+MassBalanceAccount,unit,string,YES,Unit of measurement (m3 tonnes kg),NO
+MassBalanceAccount,lastUpdated,date-time,NO,When balance was last updated,NO
+MassBalanceAccount,notes,string,NO,Account notes,NO
+MassBalanceAccount,organizationId,string,YES,Organization that owns this account,YES (Organization)
+,,,,,
+DataReconciliation,reconciliationId,string,YES,Unique identifier for reconciliation,NO
+DataReconciliation,discrepancyType,enum,YES,Type (volume_mismatch timing_gap documentation_missing quality_difference),NO
+DataReconciliation,volumeDifference,number,NO,Difference in volume if applicable,NO
+DataReconciliation,reconciliationStatus,enum,YES,Status (pending resolved escalated),NO
+DataReconciliation,resolutionNotes,string,NO,How discrepancy was resolved,NO
+DataReconciliation,detectedDate,date-time,NO,When discrepancy was detected,NO
+DataReconciliation,resolvedDate,date-time,NO,When discrepancy was resolved,NO
+DataReconciliation,traceableUnitId,string,NO,Related traceable unit,YES (TraceableUnit)
+DataReconciliation,sourceTrackingPointId,string,NO,Source tracking point in discrepancy,YES (TrackingPoint)
+DataReconciliation,destinationTrackingPointId,string,NO,Destination tracking point in discrepancy,YES (TrackingPoint)
+,,,,,
+,,,,,
+=== LCFS REGULATORY COMPLIANCE ENTITIES ===,,,,,
+,,,,,
+LcfsPathway,pathwayId,string,YES,CARB-certified pathway identifier (CA-XX-YYYY-XXX-NNN format),NO
+LcfsPathway,pathwayType,enum,YES,Type (Lookup_Table Tier_1 Tier_2),NO
+LcfsPathway,feedstockCategory,enum,YES,Feedstock (logging_and_mill_residue corn used_cooking_oil algae),NO
+LcfsPathway,fuelProduct,enum,YES,Fuel type (renewable_diesel ethanol biodiesel sustainable_aviation_fuel),NO
+LcfsPathway,carbonIntensity,number,YES,Carbon intensity in gCO2e/MJ,NO
+LcfsPathway,energyEconomyRatio,number,NO,Energy economy ratio for LCFS credits,NO
+LcfsPathway,certificationDate,date,YES,Date pathway was certified by CARB,NO
+LcfsPathway,expirationDate,date,NO,Date pathway certification expires,NO
+LcfsPathway,verificationStatus,enum,YES,Status (active suspended expired),NO
+LcfsPathway,caGreetVersion,string,NO,Version of CA-GREET model used,NO
+LcfsPathway,facilityLocation,string,NO,Location of production facility,NO
+LcfsPathway,productionProcessDescription,string,NO,Description of production process,NO
+LcfsPathway,notes,string,NO,Additional pathway notes,NO
+,,,,,
+LcfsReporting,reportingId,string,YES,Unique identifier for LCFS report (LCFS-RPT-YYYY-QN-XXX format),NO
+LcfsReporting,reportingPeriod,string,YES,Reporting quarter (YYYY-QN format),NO
+LcfsReporting,reportDate,date,YES,Date report was generated,NO
+LcfsReporting,totalFuelVolume,number,YES,Total fuel volume in reporting period,NO
+LcfsReporting,totalCreditsGenerated,number,NO,Total LCFS credits generated,NO
+LcfsReporting,pathwaySummary,array,NO,Breakdown by pathway,NO
+LcfsReporting,verificationRequired,boolean,YES,Whether third-party verification is required,NO
+LcfsReporting,verificationStatus,enum,NO,Verification status (pending verified rejected),NO
+LcfsReporting,submissionDate,date-time,NO,When report was submitted to CARB,NO
+LcfsReporting,reportUrl,uri,NO,URL to report document,NO
+LcfsReporting,notes,string,NO,Additional reporting notes,NO
+LcfsReporting,regulatedEntityId,string,YES,Regulated entity submitting report,YES (Organization)
+LcfsReporting,transactionIds,array,NO,Transactions included in this report,YES (Transaction)
+,,,,,
+,,,,,
+=== BIORAM COMPLIANCE ENTITIES ===,,,,,
+,,,,,
+BioramPathway,pathwayId,string,YES,BioRAM pathway identifier (BIORAM-PWR-YYYY-XX-NNN format),NO
+BioramPathway,fuelType,enum,YES,Fuel type (lumber_mill_residual forest_harvest_residual agricultural_residue),NO
+BioramPathway,targetFacilityType,enum,YES,Facility type (biomass_power_plant biogas_facility combined_heat_power),NO
+BioramPathway,efficiencyStandard,number,YES,Required efficiency standard percentage,NO
+BioramPathway,carbonIntensity,number,NO,Carbon intensity in gCO2e/MJ,NO
+BioramPathway,geographicScope,enum,YES,Geographic scope (California_SRA California_Statewide Western_States),NO
+BioramPathway,certificationDate,date,YES,Date pathway was certified,NO
+BioramPathway,expirationDate,date,NO,Date pathway certification expires,NO
+BioramPathway,eligibilityStatus,enum,YES,Status (active suspended expired pending_approval),NO
+BioramPathway,sourcingRequirements,string,NO,Requirements for fuel sourcing,NO
+BioramPathway,verificationProtocol,string,NO,Verification protocol reference,NO
+BioramPathway,notes,string,NO,Additional pathway notes,NO
+,,,,,
+BioramReporting,reportingId,string,YES,Unique identifier for BioRAM report (BIORAM-RPT-YYYY-QN-XXX format),NO
+BioramReporting,reportingPeriod,string,YES,Reporting quarter (YYYY-QN format),NO
+BioramReporting,reportDate,date,YES,Date report was generated,NO
+BioramReporting,totalBiomassVolume,number,YES,Total biomass volume in bone dry tonnes,NO
+BioramReporting,totalEnergyGenerated,number,YES,Total energy generated in MWh,NO
+BioramReporting,overallEfficiency,number,NO,Overall facility efficiency percentage,NO
+BioramReporting,fuelSourceBreakdown,array,NO,Breakdown by fuel source type,NO
+BioramReporting,complianceStatus,enum,NO,Compliance status (compliant non_compliant under_review),NO
+BioramReporting,submissionDate,date-time,NO,When report was submitted to CEC,NO
+BioramReporting,reportUrl,uri,NO,URL to report document,NO
+BioramReporting,notes,string,NO,Additional reporting notes,NO
+BioramReporting,facilityEntityId,string,YES,Facility submitting the report,YES (Organization)
+,,,,,

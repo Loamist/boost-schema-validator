@@ -91,10 +91,10 @@ export class UIController {
     handleEntityChange(entityName) {
         this.currentEntity = entityName;
         const hasEntity = entityName !== '';
-        
-        document.getElementById('loadExampleBtn').disabled = !hasEntity;
+
+        document.getElementById('exampleDropdownBtn').disabled = !hasEntity;
         document.getElementById('loadSchemaBtn').disabled = !hasEntity;
-        
+
         this.updateValidateButton();
         this.clearResults();
     }

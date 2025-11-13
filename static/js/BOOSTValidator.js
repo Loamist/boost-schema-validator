@@ -42,9 +42,7 @@ export class BOOSTValidator {
         });
 
         // Action buttons
-        document.getElementById('loadExampleBtn').addEventListener('click', () => {
-            this.loadExample();
-        });
+        // Note: Load Example is now handled by dropdown click handlers in updateExampleSelector()
 
         document.getElementById('loadSchemaBtn').addEventListener('click', () => {
             this.showSchema();
@@ -110,7 +108,7 @@ export class BOOSTValidator {
      */
     async handleEntityChange(entityName) {
         this.uiController.handleEntityChange(entityName);
-        
+
         // Load dictionary data for the new entity
         if (entityName) {
             try {
@@ -120,8 +118,110 @@ export class BOOSTValidator {
                 console.warn('Could not load dictionary for', entityName, error);
                 this.currentEntityDictionary = null;
             }
+
+            // Load available examples and update UI
+            try {
+                console.log('Fetching examples for entity:', entityName);
+                const examples = await this.validationService.getEntityExamples(entityName);
+                console.log('Received examples response:', examples);
+                this.updateExampleSelector(examples);
+            } catch (error) {
+                console.error('ERROR loading examples list:', error);
+                console.error('Error details:', error.message, error.stack);
+            }
         } else {
             this.currentEntityDictionary = null;
+        }
+    }
+
+    /**
+     * Update example selector based on available examples
+     */
+    updateExampleSelector(examples) {
+        console.log('updateExampleSelector called with:', examples);
+        const dropdownBtn = document.getElementById('exampleDropdownBtn');
+        const dropdownMenu = document.getElementById('exampleDropdownMenu');
+
+        console.log('Dropdown elements:', { dropdownBtn, dropdownMenu });
+
+        if (!examples || examples.length === 0) {
+            // No examples available - disable dropdown
+            console.log('No examples available, disabling dropdown');
+            dropdownBtn.disabled = true;
+            dropdownMenu.innerHTML = '<li><a class="disabled">No examples available</a></li>';
+            return;
+        }
+
+        // Enable dropdown and populate with all available examples
+        console.log('Populating dropdown with', examples.length, 'examples');
+        dropdownBtn.disabled = false;
+
+        dropdownMenu.innerHTML = examples.map(example => `
+            <li>
+                <a href="#" class="flex flex-col items-start gap-1" data-example="${example.filename}">
+                    <span class="font-semibold">${this.escapeHtml(example.name)}</span>
+                    <span class="text-xs text-base-content/60">${example.filename}</span>
+                </a>
+            </li>
+        `).join('');
+
+        console.log('Dropdown HTML updated:', dropdownMenu.innerHTML);
+
+        // Initially hide the dropdown menu
+        dropdownMenu.classList.add('hidden');
+
+        // Add toggle handler to the dropdown button
+        const toggleDropdown = (e) => {
+            e.stopPropagation();
+            console.log('Dropdown button clicked, toggling menu');
+            dropdownMenu.classList.toggle('hidden');
+        };
+
+        // Remove any existing listeners and add new one
+        const newBtn = dropdownBtn.cloneNode(true);
+        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
+        newBtn.addEventListener('click', toggleDropdown);
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!newBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.add('hidden');
+            }
+        });
+
+        // Add click handlers to menu items
+        dropdownMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const exampleName = e.currentTarget.dataset.example;
+                console.log('Example clicked:', exampleName);
+                dropdownMenu.classList.add('hidden'); // Close dropdown
+                await this.loadSpecificExample(exampleName);
+            });
+        });
+
+        console.log('Click handlers added to', dropdownMenu.querySelectorAll('a').length, 'links');
+    }
+
+    /**
+     * Load a specific example by filename
+     */
+    async loadSpecificExample(exampleFilename) {
+        const entityName = this.uiController.getCurrentEntity();
+        if (!entityName) return;
+
+        try {
+            this.uiController.setStatus('loading', `Loading ${exampleFilename}...`);
+
+            const exampleData = await this.validationService.getSpecificExample(entityName, exampleFilename);
+
+            this.uiController.setEditorContent(exampleData);
+            this.updateCurrentJsonData();
+            this.uiController.setStatus('ready', 'Example loaded - ready to validate');
+
+        } catch (error) {
+            this.uiController.showError(error.message);
+            this.uiController.setStatus('ready', 'Ready to validate');
         }
     }
 
@@ -452,17 +552,18 @@ export class BOOSTValidator {
         if (value.length > 120) {
             const truncated = value.substring(0, 120);
             const remaining = value.substring(120);
+            const uniqueId = `expand-${Math.random().toString(36).substr(2, 9)}`;
             displayValue = `
-                <span>${this.escapeHtml(truncated)}</span>
-                <span class="text-base-content/50">...
-                    <button class="btn btn-xs btn-ghost" onclick="this.previousElementSibling.classList.toggle('hidden'); this.nextElementSibling.classList.toggle('hidden')">
+                <span id="${uniqueId}-truncated">${this.escapeHtml(truncated)}</span>
+                <span class="text-base-content/50" id="${uniqueId}-ellipsis">...
+                    <button class="btn btn-xs btn-ghost" onclick="document.getElementById('${uniqueId}-ellipsis').classList.add('hidden'); document.getElementById('${uniqueId}-full').classList.remove('hidden')">
                         Show more
                     </button>
-                    <span class="hidden">${this.escapeHtml(remaining)}
-                        <button class="btn btn-xs btn-ghost" onclick="this.parentElement.classList.add('hidden'); this.parentElement.previousElementSibling.previousElementSibling.classList.remove('hidden'); this.parentElement.previousElementSibling.classList.remove('hidden')">
-                            Show less
-                        </button>
-                    </span>
+                </span>
+                <span class="hidden" id="${uniqueId}-full">${this.escapeHtml(remaining)}
+                    <button class="btn btn-xs btn-ghost" onclick="document.getElementById('${uniqueId}-full').classList.add('hidden'); document.getElementById('${uniqueId}-ellipsis').classList.remove('hidden')">
+                        Show less
+                    </button>
                 </span>
             `;
         }

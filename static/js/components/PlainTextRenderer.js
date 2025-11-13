@@ -94,7 +94,7 @@ export class PlainTextRenderer {
         }
 
         const plainTextLines = [];
-        
+
         // Add entity header if provided
         if (entityName) {
             plainTextLines.push(`=== ${entityName} ===\n`);
@@ -107,9 +107,15 @@ export class PlainTextRenderer {
             }
 
             const translatedKey = this.translateFieldName(key);
-            const formattedValue = this.formatValue(key, value);
-            
-            plainTextLines.push(`${translatedKey}: ${formattedValue}`);
+
+            // Special handling for arrays to show parent field name
+            if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object') {
+                const formattedValue = this.formatArrayValue(value, 0, key);
+                plainTextLines.push(`${translatedKey}:${formattedValue}`);
+            } else {
+                const formattedValue = this.formatValue(key, value);
+                plainTextLines.push(`${translatedKey}: ${formattedValue}`);
+            }
         });
 
         return plainTextLines.join('\n');
@@ -155,19 +161,19 @@ export class PlainTextRenderer {
     /**
      * Format values based on their field type
      */
-    formatValue(fieldName, value) {
+    formatValue(fieldName, value, depth = 0) {
         // Use custom formatter if available
         if (this.valueFormatters[fieldName]) {
             return this.valueFormatters[fieldName](value);
         }
 
         // Handle different value types
-        if (typeof value === 'object' && value !== null) {
-            return this.formatObjectValue(value);
+        if (Array.isArray(value)) {
+            return this.formatArrayValue(value, depth);
         }
 
-        if (Array.isArray(value)) {
-            return this.formatArrayValue(value);
+        if (typeof value === 'object' && value !== null) {
+            return this.formatObjectValue(value, depth);
         }
 
         if (typeof value === 'boolean') {
@@ -184,7 +190,7 @@ export class PlainTextRenderer {
     /**
      * Format object values
      */
-    formatObjectValue(obj) {
+    formatObjectValue(obj, depth = 0) {
         if (obj.arrangementType) {
             // Physical arrangement object
             const parts = [];
@@ -199,29 +205,71 @@ export class PlainTextRenderer {
             return `${obj.identifierType.toUpperCase()}: ${obj.identifierValue} (${obj.confidence}% confidence)`;
         }
 
-        // Generic object formatting
+        // Prevent infinite recursion
+        if (depth > 2) {
+            return '[nested object]';
+        }
+
+        // Generic object formatting with proper nesting
         const pairs = Object.entries(obj)
             .filter(([k, v]) => v !== null && v !== undefined)
-            .map(([k, v]) => `${this.humanizeFieldName(k)}: ${v}`)
-            .slice(0, 3); // Limit to first 3 properties
-        
+            .map(([k, v]) => {
+                const fieldName = this.humanizeFieldName(k);
+
+                // Handle nested objects recursively
+                if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+                    return `${fieldName}: ${this.formatObjectValue(v, depth + 1)}`;
+                }
+
+                // Handle arrays
+                if (Array.isArray(v)) {
+                    return `${fieldName}: ${this.formatArrayValue(v, depth)}`;
+                }
+
+                // Handle primitives
+                if (typeof v === 'boolean') {
+                    return `${fieldName}: ${v ? 'Yes' : 'No'}`;
+                }
+
+                return `${fieldName}: ${v}`;
+            });
+
+        // For nested objects (depth > 0), show inline with commas
+        // This is used when the object is part of an array item
         return pairs.join(', ');
     }
 
     /**
      * Format array values
      */
-    formatArrayValue(arr) {
+    formatArrayValue(arr, depth = 0, parentFieldName = '') {
         if (arr.length === 0) return 'None';
-        
+
         if (arr.length === 1) {
-            return typeof arr[0] === 'object' ? this.formatObjectValue(arr[0]) : String(arr[0]);
+            const item = arr[0];
+            if (typeof item === 'object' && item !== null) {
+                return this.formatObjectValue(item, depth + 1);
+            }
+            return String(item);
         }
-        
+
+        // All strings - join with commas
         if (arr.every(item => typeof item === 'string')) {
             return arr.join(', ');
         }
-        
+
+        // All objects - format each one with parent context
+        if (arr.every(item => typeof item === 'object' && item !== null)) {
+            const indent = '\n' + '  '.repeat(depth + 2);
+            const formattedItems = arr.map((item, index) => {
+                // For each item, format the object fields
+                const itemDetails = this.formatObjectValue(item, depth + 1);
+                return `[${index + 1}] ${itemDetails}`;
+            }).join(indent);
+
+            return indent + formattedItems;
+        }
+
         return `${arr.length} items`;
     }
 
