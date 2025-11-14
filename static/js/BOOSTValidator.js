@@ -147,14 +147,22 @@ export class BOOSTValidator {
         if (!examples || examples.length === 0) {
             // No examples available - disable dropdown
             console.log('No examples available, disabling dropdown');
-            dropdownBtn.disabled = true;
+            if (dropdownBtn) {
+                dropdownBtn.disabled = true;
+                dropdownBtn.removeAttribute('disabled'); // Remove disabled attribute
+                dropdownBtn.setAttribute('disabled', 'true');
+            }
             dropdownMenu.innerHTML = '<li><a class="disabled">No examples available</a></li>';
             return;
         }
 
         // Enable dropdown and populate with all available examples
         console.log('Populating dropdown with', examples.length, 'examples');
-        dropdownBtn.disabled = false;
+        if (dropdownBtn) {
+            dropdownBtn.disabled = false;
+            dropdownBtn.removeAttribute('disabled'); // Make sure disabled is removed
+        }
+        console.log('Dropdown button enabled:', !dropdownBtn.disabled);
 
         dropdownMenu.innerHTML = examples.map(example => `
             <li>
@@ -170,24 +178,28 @@ export class BOOSTValidator {
         // Initially hide the dropdown menu
         dropdownMenu.classList.add('hidden');
 
-        // Add toggle handler to the dropdown button
-        const toggleDropdown = (e) => {
-            e.stopPropagation();
-            console.log('Dropdown button clicked, toggling menu');
-            dropdownMenu.classList.toggle('hidden');
-        };
+        // Store reference to prevent multiple listeners
+        if (!this.dropdownClickHandler) {
+            this.dropdownClickHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                console.log('Dropdown button clicked, toggling menu');
+                const menu = document.getElementById('exampleDropdownMenu');
+                menu.classList.toggle('hidden');
+            };
 
-        // Remove any existing listeners and add new one
-        const newBtn = dropdownBtn.cloneNode(true);
-        dropdownBtn.parentNode.replaceChild(newBtn, dropdownBtn);
-        newBtn.addEventListener('click', toggleDropdown);
+            // Add event listener to the button
+            dropdownBtn.addEventListener('click', this.dropdownClickHandler);
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!newBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
-                dropdownMenu.classList.add('hidden');
-            }
-        });
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const menu = document.getElementById('exampleDropdownMenu');
+                const btn = document.getElementById('exampleDropdownBtn');
+                if (menu && btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
+        }
 
         // Add click handlers to menu items
         dropdownMenu.querySelectorAll('a').forEach(link => {

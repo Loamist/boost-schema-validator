@@ -232,6 +232,24 @@ export class DataGapAnalysisRenderer {
             }
         });
 
+        // Calculate missing CARB and BOOST required fields
+        const missingCarbRequired = config.carbRequiredFields.filter(
+            carbField => !provided.find(p => p.field === carbField)
+        );
+
+        const missingBoostRequired = missing.filter(f => f.required);
+
+        // Calculate completion percentages
+        const lcfsCompleteness = config.carbRequiredFields.length > 0
+            ? Math.round(((config.carbRequiredFields.length - missingCarbRequired.length) / config.carbRequiredFields.length) * 100)
+            : 100;
+
+        const boostRequiredCount = schema.required ? schema.required.filter(f => f !== '@context').length : 0;
+        const boostRequiredProvided = provided.filter(f => f.required).length;
+        const boostCompleteness = boostRequiredCount > 0
+            ? Math.round((boostRequiredProvided / boostRequiredCount) * 100)
+            : 100;
+
         return {
             provided,
             missing,
@@ -239,9 +257,15 @@ export class DataGapAnalysisRenderer {
             boostOnly: provided.filter(f => !f.inCARB),
             missingReasonable: missing.filter(f => f.complexity === 'reasonable'),
             missingRobust: missing.filter(f => f.complexity === 'robust'),
+            missingCarbRequired,
+            missingBoostRequired,
             totalFields: allFields.length - 1, // Exclude only @context
             providedCount: provided.length,
-            missingCount: missing.length
+            missingCount: missing.length,
+            lcfsCompleteness,
+            boostCompleteness,
+            carbRequiredCount: config.carbRequiredFields.length,
+            boostRequiredCount
         };
     }
 
@@ -274,10 +298,117 @@ export class DataGapAnalysisRenderer {
         return `
             <div class="space-y-6">
                 ${this.generateSummarySection(analysis, completeness, validationResult)}
+                ${this.generateMissingRequiredSection(analysis)}
                 ${this.generateProvidedDataSection(analysis)}
                 ${this.generateMissingDataSection(analysis)}
             </div>
         `;
+    }
+
+    /**
+     * Generate missing required fields section (critical alerts)
+     */
+    generateMissingRequiredSection(analysis) {
+        const config = this.entityConfigs[this.currentEntityType];
+
+        if (analysis.missingCarbRequired.length === 0 && analysis.missingBoostRequired.length === 0) {
+            return ''; // No missing required fields
+        }
+
+        let html = '<div class="mb-6">';
+
+        // Missing LCFS Required Fields - CRITICAL
+        if (analysis.missingCarbRequired.length > 0) {
+            html += `
+                <div class="alert alert-error shadow-lg mb-4">
+                    <svg class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="font-bold">CRITICAL: Missing LCFS Required Fields</h4>
+                        <p class="text-sm">The following fields are required by CARB regulations and MUST be provided for compliance</p>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-lg border-2 border-error mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-error flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Missing LCFS/CARB Required Fields
+                            <span class="badge badge-error badge-sm">${analysis.missingCarbRequired.length}</span>
+                        </h5>
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra table-sm">
+                                <thead class="bg-error/10">
+                                    <tr>
+                                        <th>Field Name</th>
+                                        <th>Regulatory Requirement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${analysis.missingCarbRequired.map(fieldName => `
+                                        <tr class="hover:bg-base-200">
+                                            <td><code class="text-sm font-mono font-semibold text-error">${fieldName}</code></td>
+                                            <td><span class="badge badge-error badge-sm">CARB Mandatory</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Missing BOOST Required Fields - WARNING
+        if (analysis.missingBoostRequired.length > 0) {
+            html += `
+                <div class="alert alert-warning shadow-lg mb-4">
+                    <svg class="w-6 h-6 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <div class="flex-1">
+                        <h4 class="font-bold">Missing BOOST Required Fields</h4>
+                        <p class="text-sm">The following fields are required by the BOOST schema for complete supply chain tracking</p>
+                    </div>
+                </div>
+
+                <div class="card bg-base-100 shadow-lg border-2 border-warning mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                            </svg>
+                            Missing BOOST Required Fields
+                            <span class="badge badge-warning badge-sm">${analysis.missingBoostRequired.length}</span>
+                        </h5>
+                        <div class="overflow-x-auto">
+                            <table class="table table-zebra table-sm">
+                                <thead class="bg-warning/10">
+                                    <tr>
+                                        <th>Field Name</th>
+                                        <th>BOOST Requirement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${analysis.missingBoostRequired.map(field => `
+                                        <tr class="hover:bg-base-200">
+                                            <td><code class="text-sm font-mono font-semibold text-warning">${field.field}</code></td>
+                                            <td><span class="badge badge-warning badge-sm">BOOST Schema Required</span></td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += '</div>';
+        return html;
     }
 
     /**
@@ -289,7 +420,8 @@ export class DataGapAnalysisRenderer {
             ? '<span class="badge badge-success gap-1"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg> Validation Passed</span>'
             : '<span class="badge badge-warning gap-1"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg> Has Validation Errors</span>';
 
-        const completenessColor = completeness >= 80 ? 'text-success' : completeness >= 50 ? 'text-warning' : 'text-error';
+        const lcfsColor = analysis.lcfsCompleteness >= 100 ? 'text-success' : 'text-error';
+        const boostColor = analysis.boostCompleteness >= 80 ? 'text-success' : analysis.boostCompleteness >= 50 ? 'text-warning' : 'text-error';
 
         return `
             <div class="mb-6">
@@ -308,41 +440,36 @@ export class DataGapAnalysisRenderer {
 
                 <div class="stats stats-horizontal shadow w-full bg-base-100">
                     <div class="stat">
-                        <div class="stat-figure text-success">
+                        <div class="stat-figure text-primary">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
                         <div class="stat-title">Fields Provided</div>
-                        <div class="stat-value text-success">${analysis.providedCount}</div>
+                        <div class="stat-value text-primary">${analysis.providedCount}</div>
                         <div class="stat-desc">Currently in submission</div>
                     </div>
 
                     <div class="stat">
-                        <div class="stat-figure text-warning">
+                        <div class="stat-figure ${lcfsColor}">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                             </svg>
                         </div>
-                        <div class="stat-title">Additional Required</div>
-                        <div class="stat-value text-warning">${analysis.missingCount}</div>
-                        <div class="stat-desc">For BOOST compliance</div>
+                        <div class="stat-title">LCFS Compliance</div>
+                        <div class="stat-value ${lcfsColor}">${analysis.lcfsCompleteness}%</div>
+                        <div class="stat-desc">${analysis.carbRequiredCount - analysis.missingCarbRequired.length}/${analysis.carbRequiredCount} CARB required</div>
                     </div>
 
                     <div class="stat">
-                        <div class="stat-figure ${completenessColor}">
+                        <div class="stat-figure ${boostColor}">
                             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
                         </div>
-                        <div class="stat-title">Completeness</div>
-                        <div class="stat-value ${completenessColor}">${completeness}%</div>
-                        <div class="stat-desc">
-                            <div class="w-full bg-base-300 rounded-full h-2 mt-1">
-                                <div class="bg-${completeness >= 80 ? 'success' : completeness >= 50 ? 'warning' : 'error'} h-2 rounded-full" style="width: ${completeness}%"></div>
-                            </div>
-                        </div>
+                        <div class="stat-title">BOOST Completeness</div>
+                        <div class="stat-value ${boostColor}">${analysis.boostCompleteness}%</div>
+                        <div class="stat-desc">${analysis.boostRequiredCount - analysis.missingBoostRequired.length}/${analysis.boostRequiredCount} BOOST required</div>
                     </div>
                 </div>
             </div>
