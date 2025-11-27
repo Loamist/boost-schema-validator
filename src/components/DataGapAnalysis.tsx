@@ -147,6 +147,7 @@ const entityConfigs: Record<string, EntityConfig> = {
     carbLabel: 'CARB-Required Fields',
     carbDescription: 'Fields mandated by Cal. Code Regs. Tit. 17, § 95491 for quarterly reporting',
     carbRequiredFields: [
+      'reportingId',
       'regulatedEntityId',
       'reportingPeriod',
       'totalFuelVolume',
@@ -159,7 +160,6 @@ const entityConfigs: Record<string, EntityConfig> = {
     ],
     fieldComplexity: {
       reasonable: [
-        'reportingId',
         'verificationRequired',
         'reportingDeadline',
         'calculationParameters'
