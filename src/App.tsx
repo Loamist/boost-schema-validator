@@ -122,6 +122,8 @@ function App() {
           <ValidationResults
             result={validationResult}
             isValidating={isValidating}
+            entityName={currentEntity}
+            parsedData={parsedData}
           />
         </div>
 

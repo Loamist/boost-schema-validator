@@ -3,6 +3,47 @@ interface PlainTextViewProps {
   data: Record<string, unknown>
 }
 
+/**
+ * Format array of objects into a readable summary
+ */
+function formatArraySummary(items: Record<string, unknown>[], fieldName: string): string {
+  if (items.length === 0) return 'None'
+
+  // Special handling for pathwaySummary
+  if (fieldName === 'pathwaySummary') {
+    const summaries = items.map(item => {
+      const pathwayId = item.pathwayId as string || 'Unknown'
+      const volume = item.totalVolume as number
+      const credits = item.creditsGenerated as number
+      const volumeStr = volume ? `${(volume / 1000).toFixed(0)}k gal` : ''
+      const creditsStr = credits ? `${(credits / 1000000).toFixed(2)}M credits` : ''
+      return `${pathwayId} (${[volumeStr, creditsStr].filter(Boolean).join(', ')})`
+    })
+    return summaries.join(' | ')
+  }
+
+  // Generic handling - find best display key
+  const keyPriority = ['id', 'pathwayId', 'transactionId', 'name', 'type', '@id']
+  const firstItem = items[0]
+  const itemKeys = Object.keys(firstItem)
+  const displayKey = itemKeys.find(k =>
+    keyPriority.some(pk => k.toLowerCase().includes(pk.toLowerCase()))
+  ) || itemKeys[0]
+
+  const values = items.map(item => {
+    const val = item[displayKey]
+    if (typeof val === 'string') {
+      return val.length > 30 ? val.substring(0, 27) + '...' : val
+    }
+    return String(val)
+  })
+
+  if (items.length <= 3) {
+    return values.join(', ')
+  }
+  return `${values.slice(0, 2).join(', ')} (+${items.length - 2} more)`
+}
+
 // Field name translations for better readability
 const FIELD_TRANSLATIONS: Record<string, string> = {
   traceableUnitId: 'Unit ID',
@@ -64,8 +105,9 @@ export default function PlainTextView({ entityName, data }: PlainTextViewProps) 
       if (value.length === 0) {
         return 'None'
       }
-      if (typeof value[0] === 'object') {
-        return `${value.length} item${value.length !== 1 ? 's' : ''}`
+      // Handle arrays of objects - show summary based on key fields
+      if (typeof value[0] === 'object' && value[0] !== null) {
+        return formatArraySummary(value as Record<string, unknown>[], key)
       }
       return value.join(', ')
     }
@@ -120,23 +162,68 @@ export default function PlainTextView({ entityName, data }: PlainTextViewProps) 
           })}
         </div>
 
-        {/* Nested Objects Section */}
-        {displayFields.some(([, value]) => typeof value === 'object' && value !== null && !Array.isArray(value)) && (
+        {/* Nested Objects and Arrays Section */}
+        {displayFields.some(([, value]) =>
+          (typeof value === 'object' && value !== null && !Array.isArray(value)) ||
+          (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
+        ) && (
           <>
             <div className="divider"></div>
             <h4 className="text-md font-semibold mb-3 text-primary">Detailed Information</h4>
+
+            {/* Arrays of Objects */}
+            {displayFields
+              .filter(([, value]) => Array.isArray(value) && value.length > 0 && typeof value[0] === 'object')
+              .map(([key, value]) => (
+                <div key={key} className="collapse collapse-arrow bg-base-100 mb-2 border border-base-300">
+                  <input type="checkbox" />
+                  <div className="collapse-title font-medium">
+                    {getDisplayName(key)} ({(value as unknown[]).length} items)
+                  </div>
+                  <div className="collapse-content">
+                    <div className="space-y-2">
+                      {(value as Record<string, unknown>[]).map((item, idx) => (
+                        <div key={idx} className="bg-base-200 p-3 rounded-lg">
+                          <div className="font-semibold text-sm mb-2 text-primary">Item {idx + 1}</div>
+                          <div className="grid gap-1 text-sm">
+                            {Object.entries(item).map(([itemKey, itemValue]) => (
+                              <div key={itemKey} className="flex gap-2">
+                                <span className="font-medium text-base-content/70 min-w-32">{getDisplayName(itemKey)}:</span>
+                                <span className="text-base-content">
+                                  {typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+            {/* Single Objects */}
             {displayFields
               .filter(([, value]) => typeof value === 'object' && value !== null && !Array.isArray(value))
               .map(([key, value]) => (
-                <div key={key} className="collapse collapse-arrow bg-base-100 mb-2">
+                <div key={key} className="collapse collapse-arrow bg-base-100 mb-2 border border-base-300">
                   <input type="checkbox" />
                   <div className="collapse-title font-medium">
                     {getDisplayName(key)}
                   </div>
                   <div className="collapse-content">
-                    <pre className="text-xs overflow-x-auto">
-                      {JSON.stringify(value, null, 2)}
-                    </pre>
+                    <div className="bg-base-200 p-3 rounded-lg">
+                      <div className="grid gap-1 text-sm">
+                        {Object.entries(value as Record<string, unknown>).map(([itemKey, itemValue]) => (
+                          <div key={itemKey} className="flex gap-2">
+                            <span className="font-medium text-base-content/70 min-w-32">{getDisplayName(itemKey)}:</span>
+                            <span className="text-base-content">
+                              {typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}

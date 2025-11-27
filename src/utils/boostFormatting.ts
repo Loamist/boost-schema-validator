@@ -134,6 +134,96 @@ function formatProcessingHistory(history: string[]): string {
 }
 
 /**
+ * Format LCFS pathway summary array
+ */
+function formatPathwaySummary(summaries: PathwaySummaryItem[]): string {
+  if (!Array.isArray(summaries) || summaries.length === 0) return '[]'
+
+  const formatted = summaries.map(item => {
+    const pathwayId = item.pathwayId || 'Unknown'
+    const volume = item.totalVolume ? `${(item.totalVolume / 1000).toFixed(0)}k gal` : ''
+    const credits = item.creditsGenerated ? `${(item.creditsGenerated / 1000000).toFixed(2)}M credits` : ''
+    return `${pathwayId}: ${[volume, credits].filter(Boolean).join(', ')}`
+  })
+
+  if (summaries.length <= 2) {
+    return formatted.join(' | ')
+  }
+  return `${summaries.length} pathways: ${formatted[0]} (+${summaries.length - 1} more)`
+}
+
+interface PathwaySummaryItem {
+  pathwayId?: string
+  feedstockType?: string
+  transactionCount?: number
+  totalVolume?: number
+  creditsGenerated?: number
+}
+
+/**
+ * Format calculation parameters object
+ */
+function formatCalculationParameters(params: CalculationParameters): string {
+  const parts: string[] = []
+
+  if (params.conversionFactor !== undefined) {
+    const unit = params.conversionFactorUnit || 'MJ/gal'
+    parts.push(`CF: ${params.conversionFactor} ${unit}`)
+  }
+
+  if (params.regulatoryBenchmark !== undefined) {
+    const unit = params.benchmarkUnit || 'gCO2e/MJ'
+    parts.push(`Benchmark: ${params.regulatoryBenchmark} ${unit}`)
+  }
+
+  if (params.defaultEER !== undefined) {
+    parts.push(`EER: ${params.defaultEER}`)
+  }
+
+  return parts.join(' • ')
+}
+
+interface CalculationParameters {
+  conversionFactor?: number
+  conversionFactorUnit?: string
+  regulatoryBenchmark?: number
+  benchmarkUnit?: string
+  defaultEER?: number
+}
+
+/**
+ * Format an array of objects by identifying a key field to display
+ */
+function formatArrayOfObjects(items: Record<string, unknown>[], _fieldName?: string): string {
+  if (items.length === 0) return '[]'
+
+  // Identify the best key to use for display
+  const keyPriority = ['id', 'pathwayId', 'transactionId', 'name', 'type', '@id', '@type']
+  const firstItem = items[0]
+  const itemKeys = Object.keys(firstItem)
+
+  let displayKey = itemKeys.find(k => keyPriority.some(pk => k.toLowerCase().includes(pk.toLowerCase())))
+  if (!displayKey) displayKey = itemKeys[0]
+
+  // Format each item using the display key
+  const formatted = items.map(item => {
+    const keyValue = item[displayKey as string]
+    if (typeof keyValue === 'string') {
+      return keyValue.length > 25 ? keyValue.substring(0, 22) + '...' : keyValue
+    }
+    return String(keyValue)
+  })
+
+  if (items.length === 1) {
+    return `[${formatted[0]}]`
+  }
+  if (items.length === 2) {
+    return `[${formatted.join(', ')}]`
+  }
+  return `${items.length} items: ${formatted[0]}, ${formatted[1]} (+${items.length - 2} more)`
+}
+
+/**
  * Format physical arrangement object
  */
 function formatPhysicalArrangement(arrangement: PhysicalArrangement): string {
@@ -269,7 +359,16 @@ export function formatBoostField(value: unknown, fieldName = ''): string {
       return formatSecondaryIdentifiers(value as SecondaryIdentifier[])
     }
 
-    // Default array formatting
+    if (fieldName === 'pathwaySummary') {
+      return formatPathwaySummary(value as PathwaySummaryItem[])
+    }
+
+    // Handle arrays of objects - show meaningful summary
+    if (value.length > 0 && typeof value[0] === 'object' && value[0] !== null) {
+      return formatArrayOfObjects(value as Record<string, unknown>[], fieldName)
+    }
+
+    // Default array formatting for primitives
     if (value.length <= 2) {
       return JSON.stringify(value)
     }
@@ -296,6 +395,10 @@ export function formatBoostField(value: unknown, fieldName = ''): string {
 
     if (fieldName === 'physicalArrangement') {
       return formatPhysicalArrangement(value as PhysicalArrangement)
+    }
+
+    if (fieldName === 'calculationParameters') {
+      return formatCalculationParameters(value as CalculationParameters)
     }
 
     // Handle small objects with @type

@@ -5,6 +5,11 @@
  */
 import { ValidationResult } from '../types'
 import { escapeHtml } from '../utils/fieldFormatting'
+import {
+  EntityConfig as BaseEntityConfig,
+  normalizeEntityName,
+  findLcfsEntityConfig
+} from '../utils/lcfsEntityConfig'
 
 interface DataGapAnalysisProps {
   entityName: string
@@ -23,206 +28,111 @@ interface FieldMetadata {
   openQuestion?: string
 }
 
-interface EntityConfig {
-  title: string
-  subtitle: string
-  carbLabel: string
-  carbDescription: string
-  carbRequiredFields: string[]
-  fieldComplexity: {
-    reasonable: string[]
-    robust: string[]
-  }
+// Extended config type that includes field metadata
+interface EntityConfigWithMetadata extends BaseEntityConfig {
   fieldMetadata: Record<string, FieldMetadata>
 }
 
-/**
- * Normalize entity name to match config keys
- * Handles: lcfs_pathway -> LCFSPathway, LcfsPathway -> LCFSPathway, etc.
- */
-function normalizeEntityName(name: string): string {
-  // Remove underscores and convert to title case
-  const normalized = name
-    .split('_')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join('')
-
-  // Special handling for LCFS prefix (should be all caps)
-  if (normalized.toLowerCase().startsWith('lcfs')) {
-    return 'LCFS' + normalized.slice(4)
-  }
-
-  return normalized
-}
-
-/**
- * Find matching config for entity name (case-insensitive)
- */
-function findEntityConfig(entityName: string, configs: Record<string, EntityConfig>): EntityConfig | null {
-  // Direct match first
-  if (configs[entityName]) {
-    return configs[entityName]
-  }
-
-  // Try normalized name
-  const normalized = normalizeEntityName(entityName)
-  if (configs[normalized]) {
-    return configs[normalized]
-  }
-
-  // Try case-insensitive match
-  const lowerName = entityName.toLowerCase()
-  for (const [key, config] of Object.entries(configs)) {
-    if (key.toLowerCase() === lowerName) {
-      return config
-    }
-  }
-
-  return null
-}
-
-// Entity-specific configurations
-const entityConfigs: Record<string, EntityConfig> = {
+// Field metadata for LCFS entities (used only by DataGapAnalysis)
+const fieldMetadataConfigs: Record<string, Record<string, FieldMetadata>> = {
   'LCFSPathway': {
-    title: 'LCFS Pathway - AFP vs BOOST',
-    subtitle: 'Comparison: Current AFP Pathway Submission vs BOOST Requirements',
-    carbLabel: 'Standard LCFS/AFP Fields',
-    carbDescription: 'Fields already collected in current AFP portal submissions',
-    carbRequiredFields: [
-      'pathwayId',
-      'pathwayType',
-      'feedstockCategory',
-      'fuelProduct',
-      'facilityLocation',
-      'carbonIntensity',
-      'energyEconomyRatio',
-      'certificationDate',
-      'verificationStatus',
-      'caGreetVersion'
-    ],
-    fieldComplexity: {
-      reasonable: [
-        'facilityCapacity',
-        'geographicScope',
-        'expirationDate'
-      ],
-      robust: [
-        'processDescription',
-        'lastUpdated'
-      ]
+    facilityCapacity: {
+      description: 'Annual production capacity in gallons',
+      collectionMethod: 'Facility operations data (self-reported)',
+      source: 'Facility Operations'
     },
-    fieldMetadata: {
-      facilityCapacity: {
-        description: 'Annual production capacity in gallons',
-        collectionMethod: 'Facility operations data (self-reported)',
-        source: 'Facility Operations'
-      },
-      geographicScope: {
-        description: 'Geographic applicability of pathway',
-        collectionMethod: 'Based on feedstock sourcing region',
-        source: 'Supply Chain Analysis'
-      },
-      expirationDate: {
-        description: 'Pathway certification expiration date',
-        collectionMethod: 'CARB certification tracking',
-        source: 'CARB Records'
-      },
-      processDescription: {
-        description: 'Detailed production process description',
-        collectionMethod: 'Engineering documentation and technical review',
-        source: 'Engineering Documentation',
-        openQuestion: 'How detailed must this be? Attestation vs technical review?'
-      },
-      lastUpdated: {
-        description: 'Timestamp of most recent pathway data update',
-        collectionMethod: 'Automated system timestamp',
-        source: 'System Generated',
-        openQuestion: 'What triggers an update? Any field change or only material changes?'
-      }
+    geographicScope: {
+      description: 'Geographic applicability of pathway',
+      collectionMethod: 'Based on feedstock sourcing region',
+      source: 'Supply Chain Analysis'
+    },
+    expirationDate: {
+      description: 'Pathway certification expiration date',
+      collectionMethod: 'CARB certification tracking',
+      source: 'CARB Records'
+    },
+    processDescription: {
+      description: 'Detailed production process description',
+      collectionMethod: 'Engineering documentation and technical review',
+      source: 'Engineering Documentation',
+      openQuestion: 'Required detail level unclear: attestation vs technical review?'
+    },
+    lastUpdated: {
+      description: 'Timestamp of most recent pathway data update',
+      collectionMethod: 'Automated system timestamp',
+      source: 'System Generated',
+      openQuestion: 'Update trigger criteria: any field change or only material changes?'
     }
   },
   'LCFSReporting': {
-    title: 'LCFS Reporting - CARB Required vs BOOST Enhanced',
-    subtitle: 'Comparison: CARB Quarterly Reporting Requirements vs BOOST Enhancements',
-    carbLabel: 'CARB-Required Fields',
-    carbDescription: 'Fields mandated by Cal. Code Regs. Tit. 17, § 95491 for quarterly reporting',
-    carbRequiredFields: [
-      'reportingId',
-      'regulatedEntityId',
-      'reportingPeriod',
-      'totalFuelVolume',
-      'totalCreditsGenerated',
-      'totalDeficitsIncurred',
-      'netPosition',
-      'complianceStatus',
-      'submissionDate',
-      'pathwaySummary'
-    ],
-    fieldComplexity: {
-      reasonable: [
-        'verificationRequired',
-        'reportingDeadline',
-        'calculationParameters'
-      ],
-      robust: [
-        'verificationDate',
-        'VerificationStatementId',
-        'transactionIds',
-        'complianceMetrics',
-        'lastUpdated'
-      ]
+    reportingId: {
+      description: 'Internal unique identifier for the quarterly report',
+      collectionMethod: 'Auto-generated by BOOST system',
+      source: 'System Generated'
     },
-    fieldMetadata: {
-      reportingId: {
-        description: 'Internal unique identifier for the quarterly report',
-        collectionMethod: 'Auto-generated by BOOST system',
-        source: 'System Generated'
-      },
-      verificationDate: {
-        description: 'Date when third-party verification was completed',
-        collectionMethod: 'Third-party verifier submission',
-        source: 'Verification Provider',
-        openQuestion: 'Should this be automatically captured or manually entered?'
-      },
-      verificationRequired: {
-        description: 'Flag indicating if third-party verification is required',
-        collectionMethod: 'Based on entity size/volume thresholds',
-        source: 'Business Logic'
-      },
-      VerificationStatementId: {
-        description: 'Reference to VerificationStatement entity',
-        collectionMethod: 'Link to verification documentation in BOOST',
-        source: 'BOOST Supply Chain',
-        openQuestion: 'How to integrate with external verification systems?'
-      },
-      reportingDeadline: {
-        description: 'CARB deadline for report submission',
-        collectionMethod: 'Calculated as 30 days after quarter end',
-        source: 'System Calculated'
-      },
-      transactionIds: {
-        description: 'Array of Transaction entity IDs included in this report',
-        collectionMethod: 'Aggregated from Transaction entities',
-        source: 'BOOST Data Lineage',
-        openQuestion: 'Should we validate all transactions are within the reporting period?'
-      },
-      calculationParameters: {
-        description: 'Parameters used for credit calculations (conversion factors, benchmarks)',
-        collectionMethod: 'Regulatory parameters from CARB guidance',
-        source: 'CARB Regulations'
-      },
-      complianceMetrics: {
-        description: 'Business intelligence metrics (credit value, environmental impact)',
-        collectionMethod: 'Calculated from credits and market data',
-        source: 'Business Analytics',
-        openQuestion: 'What credit price source should be used for valuations?'
-      },
-      lastUpdated: {
-        description: 'Timestamp of most recent report update',
-        collectionMethod: 'Automated system timestamp',
-        source: 'System Generated'
-      }
+    verificationDate: {
+      description: 'Date when third-party verification was completed',
+      collectionMethod: 'Third-party verifier submission',
+      source: 'Verification Provider',
+      openQuestion: 'Capture method: automatic from verifier system or manual entry?'
+    },
+    verificationRequired: {
+      description: 'Flag indicating if third-party verification is required',
+      collectionMethod: 'Based on entity size/volume thresholds',
+      source: 'Business Logic'
+    },
+    VerificationStatementId: {
+      description: 'Reference to VerificationStatement entity',
+      collectionMethod: 'Link to verification documentation in BOOST',
+      source: 'BOOST Supply Chain',
+      openQuestion: 'Integration path with external verification systems TBD'
+    },
+    reportingDeadline: {
+      description: 'CARB deadline for report submission',
+      collectionMethod: 'Calculated as 30 days after quarter end',
+      source: 'System Calculated'
+    },
+    transactionIds: {
+      description: 'Array of Transaction entity IDs included in this report',
+      collectionMethod: 'Aggregated from Transaction entities',
+      source: 'BOOST Data Lineage',
+      openQuestion: 'Validation rule needed: require all transactions within reporting period?'
+    },
+    calculationParameters: {
+      description: 'Parameters used for credit calculations (conversion factors, benchmarks)',
+      collectionMethod: 'Regulatory parameters from CARB guidance',
+      source: 'CARB Regulations'
+    },
+    complianceMetrics: {
+      description: 'Business intelligence metrics (credit value, environmental impact)',
+      collectionMethod: 'Calculated from credits and market data',
+      source: 'Business Analytics',
+      openQuestion: 'Credit price source for valuations: market index or contracted rates?'
+    },
+    lastUpdated: {
+      description: 'Timestamp of most recent report update',
+      collectionMethod: 'Automated system timestamp',
+      source: 'System Generated'
     }
+  }
+}
+
+/**
+ * Get extended entity config with field metadata
+ */
+function getEntityConfigWithMetadata(entityName: string): EntityConfigWithMetadata | null {
+  const baseConfig = findLcfsEntityConfig(entityName)
+  if (!baseConfig) return null
+
+  // Determine the normalized key for metadata lookup
+  const normalized = normalizeEntityName(entityName)
+  // Check fieldMetadataConfigs (local) for metadata, not lcfsEntityConfigs (imported)
+  const metadataKey = fieldMetadataConfigs[normalized] ? normalized : entityName
+  const fieldMetadata = fieldMetadataConfigs[metadataKey] || {}
+
+  return {
+    ...baseConfig,
+    fieldMetadata
   }
 }
 
@@ -269,7 +179,7 @@ export default function DataGapAnalysis({
   const currentEntityType = dataType || entityName
 
   // Find matching config (handles various naming formats)
-  const config = findEntityConfig(currentEntityType, entityConfigs)
+  const config = getEntityConfigWithMetadata(currentEntityType)
   if (!config) {
     return (
       <section className="card bg-base-100 shadow-xl">
@@ -305,7 +215,7 @@ export default function DataGapAnalysis({
 function analyzeDataGaps(
   jsonData: Record<string, unknown>,
   schema: { required?: string[]; properties?: Record<string, unknown> } | undefined,
-  config: EntityConfig
+  config: EntityConfigWithMetadata
 ): GapAnalysis {
   const provided: ProvidedField[] = []
   const missing: MissingField[] = []
@@ -375,7 +285,7 @@ function analyzeDataGaps(
   }
 }
 
-function getFieldComplexity(field: string, config: EntityConfig): 'reasonable' | 'robust' | 'unknown' {
+function getFieldComplexity(field: string, config: EntityConfigWithMetadata): 'reasonable' | 'robust' | 'unknown' {
   if (config.fieldComplexity.reasonable.includes(field)) return 'reasonable'
   if (config.fieldComplexity.robust.includes(field)) return 'robust'
   return 'unknown'
@@ -387,7 +297,7 @@ function SummarySection({
   validationResult
 }: {
   analysis: GapAnalysis
-  config: EntityConfig
+  config: EntityConfigWithMetadata
   validationResult: ValidationResult
 }) {
   const lcfsColor = analysis.lcfsCompleteness >= 100 ? 'text-success' : 'text-error'
@@ -566,7 +476,7 @@ function ProvidedDataSection({
   currentEntityType
 }: {
   analysis: GapAnalysis
-  config: EntityConfig
+  config: EntityConfigWithMetadata
   currentEntityType: string
 }) {
   if (analysis.provided.length === 0) return null
@@ -650,7 +560,7 @@ function ProvidedDataSection({
 }
 
 function ProvidedFieldRow({ field, isCARB }: { field: ProvidedField; isCARB: boolean }) {
-  const value = formatValue(field.value)
+  const value = formatValue(field.value, field.field)
 
   const lcfsRequiredBadge = isCARB
     ? <span className="badge badge-success badge-sm">Yes</span>
@@ -748,7 +658,7 @@ function MissingDataSection({ analysis }: { analysis: GapAnalysis }) {
                     <th>Field</th>
                     <th>Description</th>
                     <th>Collection Method</th>
-                    <th>Open Questions</th>
+                    <th>Notes / Source</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -768,19 +678,23 @@ function MissingDataSection({ analysis }: { analysis: GapAnalysis }) {
 function MissingFieldRow({ field, showOpenQuestion }: { field: MissingField; showOpenQuestion: boolean }) {
   const metadata = field.metadata || { description: 'No description available', collectionMethod: 'To be determined', source: 'Unknown' }
 
-  if (showOpenQuestion && metadata.openQuestion) {
+  if (showOpenQuestion) {
     return (
       <tr className="hover:bg-base-200">
         <td><code className="text-sm font-mono font-semibold">{field.field}</code></td>
         <td className="text-sm">{metadata.description}</td>
         <td className="text-sm">{metadata.collectionMethod}</td>
         <td>
-          <div className="alert alert-info py-2 px-3">
-            <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
-            </svg>
-            <span className="text-xs">{metadata.openQuestion}</span>
-          </div>
+          {metadata.openQuestion ? (
+            <div className="alert alert-info py-2 px-3">
+              <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd"/>
+              </svg>
+              <span className="text-xs">{metadata.openQuestion}</span>
+            </div>
+          ) : (
+            <span className="text-sm text-base-content/60">{metadata.source || 'TBD'}</span>
+          )}
         </td>
       </tr>
     )
@@ -796,7 +710,7 @@ function MissingFieldRow({ field, showOpenQuestion }: { field: MissingField; sho
   )
 }
 
-function formatValue(value: unknown): string {
+function formatValue(value: unknown, fieldName?: string): string {
   if (value === null || value === undefined) {
     return '<em>null</em>'
   }
@@ -809,7 +723,14 @@ function formatValue(value: unknown): string {
   }
 
   if (typeof value === 'number') {
-    return value.toString()
+    // Format large numbers more readably
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(2)}M`
+    }
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(1)}k`
+    }
+    return value.toLocaleString()
   }
 
   if (typeof value === 'boolean') {
@@ -820,6 +741,47 @@ function formatValue(value: unknown): string {
     if (value.length === 0) {
       return '<em>empty array</em>'
     }
+
+    // Handle pathwaySummary specifically
+    if (fieldName === 'pathwaySummary' && typeof value[0] === 'object') {
+      const items = value as Array<{ pathwayId?: string; totalVolume?: number; creditsGenerated?: number }>
+      const summaries = items.map(item => {
+        const pathwayId = item.pathwayId || 'Unknown'
+        const volume = item.totalVolume ? `${(item.totalVolume / 1000).toFixed(0)}k gal` : ''
+        const credits = item.creditsGenerated ? `${(item.creditsGenerated / 1000000).toFixed(2)}M` : ''
+        return `${pathwayId}: ${[volume, credits].filter(Boolean).join(', ')}`
+      })
+      if (summaries.length <= 2) {
+        return summaries.join(' | ')
+      }
+      return `${summaries[0]} (+${summaries.length - 1} more)`
+    }
+
+    // Handle arrays of objects generically
+    if (typeof value[0] === 'object' && value[0] !== null) {
+      const items = value as Record<string, unknown>[]
+      const keyPriority = ['id', 'pathwayId', 'transactionId', 'name', 'type']
+      const firstItem = items[0]
+      const itemKeys = Object.keys(firstItem)
+      const displayKey = itemKeys.find(k =>
+        keyPriority.some(pk => k.toLowerCase().includes(pk.toLowerCase()))
+      ) || itemKeys[0]
+
+      const displayValues = items.map(item => {
+        const val = item[displayKey]
+        if (typeof val === 'string') {
+          return val.length > 20 ? val.substring(0, 17) + '...' : val
+        }
+        return String(val)
+      })
+
+      if (items.length <= 2) {
+        return displayValues.join(', ')
+      }
+      return `${displayValues[0]}, ${displayValues[1]} (+${items.length - 2} more)`
+    }
+
+    // Simple arrays
     if (value.length <= 2) {
       return JSON.stringify(value)
     }
@@ -827,9 +789,36 @@ function formatValue(value: unknown): string {
   }
 
   if (typeof value === 'object') {
-    const keys = Object.keys(value as object)
+    const obj = value as Record<string, unknown>
+    const keys = Object.keys(obj)
+
+    // Handle calculationParameters specifically
+    if (fieldName === 'calculationParameters') {
+      const parts: string[] = []
+      if (obj.conversionFactor !== undefined) {
+        parts.push(`CF: ${obj.conversionFactor}`)
+      }
+      if (obj.regulatoryBenchmark !== undefined) {
+        parts.push(`Benchmark: ${obj.regulatoryBenchmark}`)
+      }
+      if (obj.defaultEER !== undefined) {
+        parts.push(`EER: ${obj.defaultEER}`)
+      }
+      return parts.join(' • ') || JSON.stringify(obj)
+    }
+
     if (keys.length <= 3) {
-      return JSON.stringify(value)
+      // Simplify values for display
+      const simplified: Record<string, unknown> = {}
+      keys.forEach(key => {
+        const val = obj[key]
+        if (typeof val === 'string' && val.length > 20) {
+          simplified[key] = val.substring(0, 17) + '...'
+        } else {
+          simplified[key] = val
+        }
+      })
+      return JSON.stringify(simplified)
     }
     return `{${keys.slice(0, 2).join(', ')}, +${keys.length - 2} more}`
   }
