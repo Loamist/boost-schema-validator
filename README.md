@@ -1,119 +1,59 @@
-# BOOST Schema Validator Frontend
+# BOOST Schema Validator
 
-A web-based interface for testing and validating BOOST entity schemas in real-time.
+A web application for validating BOOST entity schemas with LCFS compliance tracking.
 
 ## Features
 
-- 🌲 **Entity Selection**: Choose from all 36 BOOST entities
-- 📝 **JSON Editor**: Built-in editor with syntax highlighting
-- ✅ **Real-time Validation**: Instant schema and business rule validation  
-- 📊 **Example Loading**: Load example data for each entity
-- 🔍 **Schema Viewing**: Inspect entity schemas in a modal
-- 🎨 **Responsive Design**: Works on desktop and mobile
+- **Entity Selection**: Choose from 36 BOOST entities with example data
+- **Real-time Validation**: Instant JSON Schema validation with detailed error reporting
+- **LCFS Compliance**: Dual status display showing LCFS (CARB) compliance vs BOOST schema validity
+- **Data Gap Analysis**: Side-by-side comparison of AFP requirements vs BOOST enhancements
+- **Multiple Views**: Field table, plain text summary, and raw JSON views
 
-## Quick Start (Docker)
+## Quick Start
 
-1. **Build and Run**
-   ```bash
-   cd boost-validator-frontend
-   ./run.sh
-   ```
+```bash
+# Install dependencies
+npm install
 
-2. **Open Browser**
-   Visit: http://localhost:5000
-
-3. **Stop Service**
-   ```bash
-   docker-compose down  # or 'docker compose down' for newer Docker
-   ```
-
-## Alternative: Local Development
-
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-2. **Start the Server**
-   ```bash
-   cd backend
-   python app.py
-   ```
-
-## Usage
-
-1. **Select Entity**: Choose an entity from the dropdown (e.g., "TraceableUnit")
-2. **Load Example**: Click "Load Example" to populate with sample data
-3. **Edit Data**: Modify the JSON in the editor
-4. **Validate**: Click "Validate" to test against schema and business rules
-5. **View Results**: See validation results with detailed error messages
-
-## API Endpoints
-
-- `GET /api/entities` - List available entities
-- `GET /api/entity/{name}/schema` - Get entity schema
-- `GET /api/entity/{name}/example` - Get example data
-- `POST /api/validate` - Validate entity data
-
-## File Structure
-
-```
-boost-validator-frontend/
-├── backend/
-│   └── app.py              # Flask API server
-├── templates/
-│   └── index.html          # Main HTML page
-├── static/
-│   ├── css/
-│   │   └── style.css       # Styling
-│   └── js/
-│       └── app.js          # Frontend JavaScript
-├── requirements.txt        # Python dependencies
-└── README.md              # This file
+# Start development server
+npm run dev
 ```
 
-## Validation Features
+Open http://localhost:5173
 
-### Schema Validation
-- JSON Schema compliance checking
-- Required field validation
-- Data type validation
-- Pattern matching (IDs, formats)
+## Build for Production
 
-### Business Rules Validation  
-- JsonLogic rule engine
-- Complex conditional validation
-- Cross-field validation
-- BOOST-specific business logic
+```bash
+npm run build
+```
 
-### Results Display
-- ✅ Success indicators
-- ❌ Detailed error messages  
-- 📊 Validation breakdown (schema vs business rules)
-- 🔍 Error location highlighting
+Output goes to `dist/` folder - ready for static hosting.
 
-## Example Entities
+## Project Structure
 
-The frontend loads examples for all BOOST entities:
-- **TraceableUnit**: Core tracking entity with biometric identification
-- **Organization**: Business entities in supply chain
-- **GeographicData**: Spatial location data
-- **MaterialProcessing**: Processing operations
-- **Transaction**: Commercial exchanges
-- And 31+ more entities
+```
+├── src/
+│   ├── components/       # React components
+│   ├── services/         # Schema loading & validation
+│   ├── utils/            # Formatting & helper functions
+│   └── types/            # TypeScript definitions
+├── public/schemas/       # BOOST schemas (generated at build)
+├── scripts/              # Build scripts
+└── index.html            # Entry point
+```
 
-## Development
+## Tech Stack
 
-To modify the validator:
+- React 18 + TypeScript
+- Vite (build tool)
+- Tailwind CSS + DaisyUI
+- Ajv (JSON Schema validation)
 
-1. **Backend Changes**: Edit `backend/app.py` for API modifications
-2. **Frontend Changes**: Edit `templates/index.html` and `static/` files
-3. **Styling**: Modify `static/css/style.css` for appearance changes
-4. **JavaScript**: Edit `static/js/app.js` for functionality changes
+## Schema Source
 
-## Notes
+Schemas are loaded from the BOOST schema repository at build time. Set the `BOOST_SCHEMA_PATH` environment variable to customize the source location.
 
-- The validator connects to the main BOOST schema directory at `../drafts/current/schema`
-- All validation uses the official BOOST JSON schemas and business rules
-- Results are displayed in real-time with detailed error reporting
-- The interface is designed for both developers and non-technical users
+## License
+
+See [LICENSE](LICENSE) and [BOOST_ATTRIBUTION.md](BOOST_ATTRIBUTION.md).
