@@ -1,0 +1,82 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/customer",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "Customer"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "customerId": {
+        "type": "string",
+        "pattern": "^CUST-[A-Z0-9-_]+$",
+        "minLength": 5,
+        "maxLength": 50,
+        "description": "Unique identifier for the customer",
+        "examples": ["CUST-001", "CUST-PACIFIC-MILLS"]
+      },
+      "customerName": {
+        "type": "string"
+      },
+      "address": {
+        "type": "string"
+      },
+      "GeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Customer location - uses EntityNameId convention referencing GeographicData",
+        "examples": ["GEO-CUSTOMER-PACIFIC-001", "GEO-MILL-DELIVERY-SITE"]
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "customerId",
+      "customerName"
+    ],
+    "title": "Customer",
+    "description": "Customer entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "customerId"
+        }
+      },
+      {
+        "!!": {
+          "var": "customerName"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "Customer",
+      "primaryKey": "customerId",
+      "area": "material_supply_chain",
+      "description": "🏪 Customer entity for buyers"
+    },
+    "relationships": [
+      {
+        "field": "GeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "located at"
+      }
+    ]
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/product-group",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "ProductGroup"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "productGroupId": {
+        "type": "string",
+        "pattern": "^PG-[A-Z0-9-_]+$"
+      },
+      "productGroupName": {
+        "type": "string"
+      },
+      "productCategory": {
+        "type": "string",
+        "enum": [
+          "solid_biomass",
+          "liquid_biofuel",
+          "biogas"
+        ]
+      },
+      "classification": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "typicalUses": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "qualityStandards": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "certificationRequirements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "regulatoryClassification": {
+        "type": "string"
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "relatedMaterials": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "@type": {
+              "const": "Material"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "@type",
+            "id"
+          ]
+        }
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "productGroupId",
+      "productGroupName",
+      "productCategory",
+      "description"
+    ],
+    "title": "Product Group",
+    "description": "ProductGroup entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "productGroupId"
+        }
+      },
+      {
+        "!!": {
+          "var": "productGroupName"
+        }
+      },
+      {
+        "!!": {
+          "var": "productCategory"
+        }
+      },
+      {
+        "!!": {
+          "var": "description"
+        }
+      },
+      {
+        "if": [
+          {
+            "var": "typicalUses"
+          },
+          {
+            "and": [
+              {
+                ">": [
+                  {
+                    "var": "typicalUses.length"
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "qualityStandards"
+          },
+          {
+            "and": [
+              {
+                ">": [
+                  {
+                    "var": "qualityStandards.length"
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "certificationRequirements"
+          },
+          {
+            "and": [
+              {
+                ">": [
+                  {
+                    "var": "certificationRequirements.length"
+                  },
+                  0
+                ]
+              }
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "relatedMaterials"
+          },
+          {
+            "and": [
+              {
+                ">": [
+                  {
+                    "var": "relatedMaterials.length"
+                  },
+                  0
+                ]
+              },
+              {
+                "all": [
+                  {
+                    "var": "relatedMaterials"
+                  },
+                  {
+                    "and": [
+                      {
+                        "!!": {
+                          "var": "id"
+                        }
+                      },
+                      {
+                        "==": [
+                          {
+                            "var": "@type"
+                          },
+                          "Material"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          true
+        ]
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "ProductGroup",
+      "primaryKey": "productGroupId",
+      "area": "compliance_reporting",
+      "description": "Product groupings and classifications for biomass materials"
+    },
+    "relationships": []
+  }
+}

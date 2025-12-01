@@ -1,0 +1,28 @@
+{
+  "@context": {
+    "LCFSPathway": "https://github.com/carbondirect/BOOST/schemas#LCFSPathway",
+    "pathwayId": "https://github.com/carbondirect/BOOST/schemas#pathwayId",
+    "pathwayType": "https://github.com/carbondirect/BOOST/schemas#pathwayType",
+    "feedstockCategory": "https://github.com/carbondirect/BOOST/schemas#feedstockCategory",
+    "fuelProduct": "https://github.com/carbondirect/BOOST/schemas#fuelProduct",
+    "facilityLocation": "https://github.com/carbondirect/BOOST/schemas#facilityLocation",
+    "carbonIntensity": "https://github.com/carbondirect/BOOST/schemas#carbonIntensity",
+    "energyEconomyRatio": "https://github.com/carbondirect/BOOST/schemas#energyEconomyRatio",
+    "certificationDate": "https://github.com/carbondirect/BOOST/schemas#certificationDate",
+    "verificationStatus": "https://github.com/carbondirect/BOOST/schemas#verificationStatus",
+    "caGreetVersion": "https://github.com/carbondirect/BOOST/schemas#caGreetVersion",
+    "id": "@id"
+  },
+  "@type": "LCFSPathway",
+  "@id": "https://github.com/carbondirect/BOOST/schemas/lcfs-pathway/CA-RD-2025-MRN-Q2",
+  "pathwayId": "CA-RD-2025-MRN-001",
+  "pathwayType": "Tier_1",
+  "feedstockCategory": "logging_and_mill_residue",
+  "fuelProduct": "renewable_diesel",
+  "facilityLocation": "Humboldt, CA",
+  "carbonIntensity": 15.5,
+  "energyEconomyRatio": 1.0,
+  "certificationDate": "2025-01-15",
+  "verificationStatus": "active",
+  "caGreetVersion": "3.0"
+}

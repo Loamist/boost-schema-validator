@@ -1,0 +1,133 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/biometric-identifier",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "BiometricIdentifier"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "biometricId": {
+        "type": "string",
+        "pattern": "^BIO-[A-Z0-9-_]+$"
+      },
+      "traceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$",
+        "description": "Foreign key to TraceableUnit entity"
+      },
+      "biometricSignature": {
+        "type": "string"
+      },
+      "captureMethod": {
+        "type": "string",
+        "enum": [
+          "optical_scanner",
+          "photo_analysis", 
+          "manual_photo",
+          "visual_inspection"
+        ]
+      },
+      "confidenceScore": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Pattern matching reliability score (0-100)"
+      },
+      "fallbackRequired": {
+        "type": "boolean",
+        "description": "True if low confidence requires secondary verification"
+      },
+      "verificationMethod": {
+        "type": "string",
+        "enum": [
+          "automated_matching",
+          "manual_review",
+          "cross_validation",
+          "secondary_identifier"
+        ],
+        "description": "Method used to verify biometric match"
+      },
+      "captureGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Foreign key to GeographicData entity for capture location"
+      },
+      "captureTimestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "trackingPointId": {
+        "type": "string",
+        "pattern": "^TP-[A-Z0-9-_]+$",
+        "description": "Foreign key to TrackingPoint entity where capture occurred"
+      },
+      "speciesBiometrics": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of the most recent data update"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "biometricId",
+      "traceableUnitId",
+      "biometricSignature",
+      "captureMethod",
+      "confidenceScore",
+      "fallbackRequired",
+      "captureTimestamp"
+    ],
+    "title": "Biometric Identifier",
+    "description": "BiometricIdentifier entity in BOOST data model"
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "BiometricIdentifier",
+      "primaryKey": "biometricId",
+      "area": "core_traceability",
+      "description": "Biometric signatures for unique biomass identification"
+    },
+    "relationships": [
+      {
+        "field": "traceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "identifies"
+      },
+      {
+        "field": "captureGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "captured at"
+      },
+      {
+        "field": "trackingPointId",
+        "targetEntity": "TrackingPoint",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "captured at point"
+      }
+    ]
+  }
+}

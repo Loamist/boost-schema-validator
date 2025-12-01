@@ -1,0 +1,108 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/mass-balance-account",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "MassBalanceAccount"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "accountId": {
+        "type": "string",
+        "pattern": "^MBA-[A-Z0-9-_]+$"
+      },
+      "organizationId": {
+        "type": "string",
+        "pattern": "^ORG-[A-Z0-9-_]+$"
+      },
+      "productGroupId": {
+        "type": "string",
+        "pattern": "^PG-[A-Z0-9-_]+$"
+      },
+      "periodInputs": {
+        "type": "number"
+      },
+      "periodOutputs": {
+        "type": "number"
+      },
+      "currentBalance": {
+        "type": "number"
+      },
+      "balancingPeriod": {
+        "type": "string"
+      },
+      "conversionFactors": {
+        "type": "number"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "accountId",
+      "organizationId",
+      "productGroupId",
+      "currentBalance"
+    ],
+    "title": "Mass Balance Account",
+    "description": "MassBalanceAccount entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "accountId"
+        }
+      },
+      {
+        "!!": {
+          "var": "organizationId"
+        }
+      },
+      {
+        "!!": {
+          "var": "productGroupId"
+        }
+      },
+      {
+        "!!": {
+          "var": "currentBalance"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "MassBalanceAccount",
+      "primaryKey": "accountId",
+      "area": "compliance_reporting",
+      "description": "Mass balance accounting for material flow tracking"
+    },
+    "relationships": [
+      {
+        "field": "organizationId",
+        "targetEntity": "Organization",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "managed by"
+      },
+      {
+        "field": "productGroupId",
+        "targetEntity": "ProductGroup",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "tracking product group"
+      }
+    ]
+  }
+}

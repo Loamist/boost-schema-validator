@@ -27,27 +27,24 @@ import { dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Possible schema source locations
-const SCHEMA_SOURCES = [
-  join(__dirname, '../../BOOST/schema'),
-  join(__dirname, '../schema'),
-  '/app/schema' // Docker
-]
+// Schema source location (local copy fetched from GitHub)
+const SCHEMA_SOURCE = join(__dirname, '../schema')
 
 // Output directory
 const OUTPUT_DIR = join(__dirname, '../public/schemas')
 
 /**
- * Find the schema source directory
+ * Verify the schema source directory exists
  */
-function findSchemaSource() {
-  for (const source of SCHEMA_SOURCES) {
-    if (existsSync(source)) {
-      console.log(`📁 Found schema source: ${source}`)
-      return source
-    }
+function verifySchemaSource() {
+  if (existsSync(SCHEMA_SOURCE)) {
+    console.log(`📁 Using schema source: ${SCHEMA_SOURCE}`)
+    return SCHEMA_SOURCE
   }
-  throw new Error('Schema source not found. Checked: ' + SCHEMA_SOURCES.join(', '))
+  throw new Error(
+    `Schema source not found at: ${SCHEMA_SOURCE}\n` +
+    'Run "npm run fetch-schema" first to download the schema from GitHub.'
+  )
 }
 
 /**
@@ -208,8 +205,8 @@ function processEntity(sourceDir, entityDir, outputDir) {
 function main() {
   console.log('🚀 Preparing schemas for static build...\n')
 
-  // Find schema source
-  const sourceDir = findSchemaSource()
+  // Verify schema source exists
+  const sourceDir = verifySchemaSource()
 
   // Clear and create output directory
   if (existsSync(OUTPUT_DIR)) {

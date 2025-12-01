@@ -38,7 +38,8 @@ Output goes to `dist/` folder - ready for static hosting.
 │   ├── services/         # Schema loading & validation
 │   ├── utils/            # Formatting & helper functions
 │   └── types/            # TypeScript definitions
-├── public/schemas/       # BOOST schemas (generated at build)
+├── schema/               # BOOST schemas (fetched from GitHub)
+├── public/schemas/       # Processed schemas (generated at build)
 ├── scripts/              # Build scripts
 └── index.html            # Entry point
 ```
@@ -50,9 +51,31 @@ Output goes to `dist/` folder - ready for static hosting.
 - Tailwind CSS + DaisyUI
 - Ajv (JSON Schema validation)
 
-## Schema Source
+## Schema Management
 
-Schemas are loaded from the BOOST schema repository at build time. Set the `BOOST_SCHEMA_PATH` environment variable to customize the source location.
+The `schema/` directory contains a local copy of the BOOST schemas from [carbondirect/BOOST](https://github.com/carbondirect/BOOST). This copy is committed to the repository so no external dependencies are required at build time.
+
+### Updating Schemas
+
+To fetch the latest schemas from GitHub:
+
+```bash
+npm run fetch-schema
+```
+
+This downloads schemas from `carbondirect/BOOST` (branch: main, path: `drafts/current/schema`) and saves them to `./schema/`.
+
+To update and rebuild in one step:
+
+```bash
+npm run update-schema
+```
+
+### How It Works
+
+1. `npm run fetch-schema` - Downloads schemas from GitHub → `./schema/`
+2. `npm run prepare-schemas` - Processes `./schema/` → `./public/schemas/` (runs automatically on dev/build)
+3. The app loads schemas from `./public/schemas/` at runtime
 
 ## License
 

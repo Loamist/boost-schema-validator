@@ -1,0 +1,116 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/supply-base",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object",
+        "description": "JSON-LD context defining semantic vocabulary mappings"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "SupplyBase"
+        ],
+        "description": "Entity type identifier for JSON-LD processing"
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri",
+        "description": "Globally unique IRI identifying this specific entity instance"
+      },
+      "supplyBaseId": {
+        "type": "string",
+        "pattern": "^SB-[A-Z0-9-_]+$"
+      },
+      "OrganizationId": {
+        "type": "string",
+        "pattern": "^ORG-[A-Z0-9-_]+$",
+        "description": "Managing organization - uses EntityNameId convention referencing Organization"
+      },
+      "supplyBaseName": {
+        "type": "string"
+      },
+      "description": {
+        "type": "string"
+      },
+      "harvestSites": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "speciesAvailable": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "GeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Supply base location - uses EntityNameId convention referencing GeographicData"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "supplyBaseId",
+      "OrganizationId",
+      "supplyBaseName",
+      "description"
+    ],
+    "title": "Supply Base",
+    "description": "SupplyBase entity in BOOST data model. Infrastructure data (roads) and entity relationships (equipment, TRUs) are maintained via proper foreign keys rather than redundant arrays, following normalization principles."
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "supplyBaseId"
+        }
+      },
+      {
+        "!!": {
+          "var": "organizationId"
+        }
+      },
+      {
+        "!!": {
+          "var": "supplyBaseName"
+        }
+      },
+      {
+        "!!": {
+          "var": "description"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "SupplyBase",
+      "primaryKey": "supplyBaseId",
+      "area": "material_supply_chain",
+      "description": "Geographic and operational bases for biomass supply operations"
+    },
+    "relationships": [
+      {
+        "field": "OrganizationId",
+        "targetEntity": "Organization",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "managed by"
+      },
+      {
+        "field": "GeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "located at"
+      }
+    ]
+  }
+}

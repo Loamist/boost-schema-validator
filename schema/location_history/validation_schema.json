@@ -1,0 +1,210 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/location-history",
+    "title": "Location History",
+    "description": "Historical movement records of TRUs",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "LocationHistory"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "locationHistoryId": {
+        "type": "string",
+        "pattern": "^LH-[A-Z0-9-_]+$"
+      },
+      "traceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$"
+      },
+      "geographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "locationEventType": {
+        "type": "string",
+        "enum": [
+          "arrival",
+          "departure",
+          "processing",
+          "storage",
+          "measurement"
+        ]
+      },
+      "materialProcessingId": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "pattern": "^MP-[A-Z0-9-_]+$"
+      },
+      "operatorId": {
+        "type": "string",
+        "pattern": "^OP-[A-Z0-9-_]+$"
+      },
+      "equipmentUsed": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      },
+      "distanceTraveled": {
+        "type": "number",
+        "minimum": 0
+      },
+      "transportMethod": {
+        "type": "string",
+        "enum": [
+          "truck",
+          "rail",
+          "ship",
+          "conveyor",
+          "manual"
+        ]
+      },
+      "isCurrentLocation": {
+        "type": "boolean"
+      },
+      "verificationMethods": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "GPS",
+            "RFID",
+            "visual_confirmation",
+            "biometric_scan"
+          ]
+        }
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "locationHistoryId",
+      "traceableUnitId",
+      "geographicDataId",
+      "timestamp",
+      "locationEventType",
+      "isCurrentLocation"
+    ]
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "locationHistoryId"
+        }
+      },
+      {
+        "!!": {
+          "var": "traceableUnitId"
+        }
+      },
+      {
+        "!!": {
+          "var": "geographicDataId"
+        }
+      },
+      {
+        "!!": {
+          "var": "timestamp"
+        }
+      },
+      {
+        "!!": {
+          "var": "locationEventType"
+        }
+      },
+      {
+        "if": [
+          {
+            "var": "distanceTraveled"
+          },
+          {
+            ">=": [
+              {
+                "var": "distanceTraveled"
+              },
+              0
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "verificationMethods"
+          },
+          {
+            ">": [
+              {
+                "var": "verificationMethods.length"
+              },
+              0
+            ]
+          },
+          true
+        ]
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "LocationHistory",
+      "primaryKey": "locationHistoryId",
+      "area": "core_traceability",
+      "description": "Historical movement records and location tracking for biomass units"
+    },
+    "relationships": [
+      {
+        "field": "traceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "tracking movement of"
+      },
+      {
+        "field": "geographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "located at"
+      },
+      {
+        "field": "materialProcessingId",
+        "targetEntity": "MaterialProcessing",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "during processing"
+      },
+      {
+        "field": "operatorId",
+        "targetEntity": "Operator",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "handled by"
+      }
+    ]
+  }
+}

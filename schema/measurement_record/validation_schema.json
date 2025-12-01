@@ -1,0 +1,255 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/measurement-record",
+    "title": "Measurement Record",
+    "description": "Quality measurements and dimensional data",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "MeasurementRecord"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "recordId": {
+        "type": "string",
+        "pattern": "^MR-[A-Z0-9-_]+$"
+      },
+      "traceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$"
+      },
+      "measuredVolume": {
+        "type": "number",
+        "minimum": 0
+      },
+      "measuredLength": {
+        "type": "number",
+        "minimum": 0
+      },
+      "measuredDiameter": {
+        "type": "number",
+        "minimum": 0
+      },
+      "measurementMethod": {
+        "type": "string",
+        "enum": [
+          "oven_dry",
+          "air_dry",
+          "kiln_dry",
+          "moisture_meter",
+          "capacitance",
+          "resistance",
+          "dielectric",
+          "pin_type",
+          "pinless",
+          "manual",
+          "automated",
+          "harvester_head",
+          "mill_scale",
+          "truck_scale",
+          "optical",
+          "laser",
+          "ultrasonic",
+          "photogrammetry"
+        ],
+        "description": "Method used for measurement with comprehensive standard values"
+      },
+      "measurementGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$"
+      },
+      "measurementTimestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "operatorId": {
+        "type": "string",
+        "pattern": "^OP-[A-Z0-9-_]+$"
+      },
+      "trackingPointId": {
+        "type": "string",
+        "pattern": "^TP-[A-Z0-9-_]+$"
+      },
+      "speciesMeasurements": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "moistureContent": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Moisture content as percentage by weight (0-100%)"
+      },
+      "moistureMethod": {
+        "type": "string",
+        "enum": [
+          "oven_dry",
+          "electrical_resistance",
+          "microwave",
+          "near_infrared",
+          "gravimetric",
+          "capacitive",
+          "calculated",
+          "estimated"
+        ],
+        "description": "Method used to determine moisture content"
+      },
+      "moistureStandard": {
+        "type": "string",
+        "enum": [
+          "ASTM_D4442",
+          "ASTM_D2016",
+          "ISO_13061",
+          "CEN_EN_14774",
+          "local_standard"
+        ],
+        "description": "Standard procedure followed for moisture measurement"
+      },
+      "moistureAccuracy": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Estimated accuracy of moisture measurement (\u00b1 percentage points)"
+      },
+      "expectedAccuracy": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Expected accuracy of the measurement method as decimal (e.g., 0.02 = \u00b12% accuracy)"
+      },
+      "calibrationStandard": {
+        "type": "string",
+        "enum": [
+          "ISO_forestry_equipment",
+          "ASTM_measurement_standards",
+          "manufacturer_specification",
+          "local_calibration_standard",
+          "NIST_traceable"
+        ],
+        "description": "Reference standard used for equipment calibration and accuracy specification"
+      },
+      "accuracyValidation": {
+        "type": "object",
+        "properties": {
+          "minAcceptable": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Minimum acceptable measured value based on expected accuracy"
+          },
+          "maxAcceptable": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Maximum acceptable measured value based on expected accuracy"
+          },
+          "withinTolerance": {
+            "type": "boolean",
+            "description": "Whether the measurement falls within expected accuracy range"
+          }
+        },
+        "description": "Validation range based on equipment accuracy specifications"
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "recordId",
+      "traceableUnitId",
+      "measurementMethod",
+      "measurementTimestamp"
+    ]
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "recordId"
+        }
+      },
+      {
+        "!!": {
+          "var": "traceableUnitId"
+        }
+      },
+      {
+        "!!": {
+          "var": "measurementMethod"
+        }
+      },
+      {
+        "!!": {
+          "var": "measurementTimestamp"
+        }
+      },
+      {
+        "if": [
+          {
+            "var": "measuredVolume"
+          },
+          {
+            ">": [
+              {
+                "var": "measuredVolume"
+              },
+              0
+            ]
+          },
+          true
+        ]
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "MeasurementRecord",
+      "primaryKey": "recordId",
+      "area": "measurement_verification",
+      "description": "Quality measurements and dimensional data for biomass tracking"
+    },
+    "relationships": [
+      {
+        "field": "traceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "measuring",
+        "example": "Record-456 measures volume/moisture of TRU-123"
+      },
+      {
+        "field": "measurementGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "measured at"
+      },
+      {
+        "field": "operatorId",
+        "targetEntity": "Operator",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "measured by"
+      },
+      {
+        "field": "trackingPointId",
+        "targetEntity": "TrackingPoint",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "measured at point"
+      }
+    ]
+  }
+}

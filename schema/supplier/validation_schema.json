@@ -1,0 +1,86 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/supplier",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "Supplier"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "supplierId": {
+        "type": "string",
+        "pattern": "^SUP-[A-Z0-9-_]+$"
+      },
+      "supplierName": {
+        "type": "string"
+      },
+      "address": {
+        "type": "string"
+      },
+      "certificateCode": {
+        "type": "string"
+      },
+      "claim": {
+        "type": "string"
+      },
+      "supplierType": {
+        "type": "string"
+      },
+      "GeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Supplier location - uses EntityNameId convention referencing GeographicData"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "supplierId",
+      "supplierName"
+    ],
+    "title": "Supplier",
+    "description": "Supplier entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "supplierId"
+        }
+      },
+      {
+        "!!": {
+          "var": "supplierName"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "Supplier",
+      "primaryKey": "supplierId",
+      "area": "material_supply_chain",
+      "description": "Supply chain organizations providing biomass materials"
+    },
+    "relationships": [
+      {
+        "field": "GeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "located at"
+      }
+    ]
+  }
+}
