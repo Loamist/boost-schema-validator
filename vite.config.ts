@@ -4,6 +4,6 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Base path - can be changed for different deployment targets
-  base: '/',
+  // Base path for GitHub Pages deployment
+  base: '/boost-schema-validator/',
 })
