@@ -1,5 +1,6 @@
 import { ValidationResult } from '../../types'
 import { isLcfsEntity, calculateLcfsCompliance } from '../../utils/lcfsEntityConfig'
+import { isBioramEntity, calculateBioramRealityCompliance, getBoostOnlyFieldsStatus } from '../../utils/bioramEntityConfig'
 import SummaryView from './SummaryView'
 
 interface ValidationResultsProps {
@@ -10,7 +11,8 @@ interface ValidationResultsProps {
 }
 
 export default function ValidationResults({ result, isValidating, entityName, parsedData }: ValidationResultsProps) {
-  const showDualStatus = entityName && parsedData && isLcfsEntity(entityName)
+  const showLcfsDualStatus = entityName && parsedData && isLcfsEntity(entityName)
+  const showBioramDualStatus = entityName && parsedData && isBioramEntity(entityName)
 
   return (
     <div className="card bg-base-100 shadow-xl">
@@ -23,8 +25,15 @@ export default function ValidationResults({ result, isValidating, entityName, pa
             </svg>
             Validation Results
           </h3>
-          {showDualStatus ? (
+          {showLcfsDualStatus ? (
             <DualStatusBadge
+              result={result}
+              isValidating={isValidating}
+              entityName={entityName}
+              parsedData={parsedData}
+            />
+          ) : showBioramDualStatus ? (
+            <BioramDualStatusBadge
               result={result}
               isValidating={isValidating}
               entityName={entityName}
@@ -146,6 +155,80 @@ function DualStatusBadge({ result, isValidating, entityName, parsedData }: DualS
           </div>
         ) : (
           <div className="badge badge-outline badge-warning gap-1">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
+            </svg>
+            {result.errors.length} Gap{result.errors.length !== 1 ? 's' : ''}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function BioramDualStatusBadge({ result, isValidating, entityName, parsedData }: DualStatusBadgeProps) {
+  if (isValidating) {
+    return (
+      <div className="badge badge-lg badge-ghost flex-shrink-0">
+        <span className="loading loading-dots loading-xs mr-2"></span>
+        Validating...
+      </div>
+    )
+  }
+
+  if (!result) {
+    return (
+      <div className="badge badge-lg badge-ghost flex-shrink-0">
+        Ready
+      </div>
+    )
+  }
+
+  // Calculate BioRAM reality compliance
+  const bioramCompliance = calculateBioramRealityCompliance(entityName, parsedData)
+  const boostOnlyStatus = getBoostOnlyFieldsStatus(entityName, parsedData)
+  const boostValid = result.valid
+
+  // Total missing for reality = shared + reality-only fields
+  const totalMissingReality = bioramCompliance.missingSharedFields.length + bioramCompliance.missingRealityFields.length
+
+  return (
+    <div className="flex items-center gap-2 flex-shrink-0">
+      {/* CPUC/IOU Compliance Badge - Primary importance */}
+      <div className="flex flex-col items-center">
+        <span className="text-xs text-base-content/60 mb-0.5">CPUC/IOU</span>
+        {bioramCompliance.isCompliant ? (
+          <div className="badge badge-success gap-1" title={`${bioramCompliance.providedCount}/${bioramCompliance.requiredCount} required fields`}>
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+            </svg>
+            Compliant
+          </div>
+        ) : (
+          <div className="badge badge-error gap-1" title={`Missing: ${[...bioramCompliance.missingSharedFields, ...bioramCompliance.missingRealityFields].join(', ')}`}>
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+            </svg>
+            {totalMissingReality} Missing
+          </div>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="divider divider-horizontal mx-0 my-0 w-px h-8 bg-base-300"></div>
+
+      {/* BOOST Compliance Badge - Secondary importance */}
+      <div className="flex flex-col items-center">
+        <span className="text-xs text-base-content/60 mb-0.5">BOOST</span>
+        {boostValid ? (
+          <div className="badge badge-outline badge-success gap-1">
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+            </svg>
+            Valid
+          </div>
+        ) : (
+          <div className="badge badge-outline badge-warning gap-1" title={`Missing BOOST fields: ${boostOnlyStatus.missingBoostOnly.join(', ')}`}>
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd"/>
             </svg>

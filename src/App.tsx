@@ -6,6 +6,7 @@ import JsonEditor from './components/JsonEditor'
 import ValidationResults from './components/ValidationResults'
 import EntityRepresentation from './components/EntityRepresentation'
 import DataGapAnalysis from './components/DataGapAnalysis'
+import BioramDataGapAnalysis from './components/BioramDataGapAnalysis'
 import FieldTable from './components/FieldTable'
 import { getEntityList, loadEntitySchema, loadEntityDictionary } from './services/schemaLoader'
 import { ValidationResult, EntitySchema, EntityDictionary } from './types'
@@ -35,6 +36,9 @@ function App() {
 
   // Check if current entity is an LCFS entity (for gap analysis)
   const isLcfsEntity = currentEntity.toLowerCase().includes('lcfs')
+
+  // Check if current entity is a BioRAM entity (for gap analysis)
+  const isBioramEntity = currentEntity.toLowerCase().includes('bioram')
 
   const handleValidate = async () => {
     if (!currentEntity || !jsonData) return
@@ -161,6 +165,19 @@ function App() {
         {/* Gap Analysis for LCFS entities */}
         {validationResult && parsedData && isLcfsEntity && (
           <DataGapAnalysis
+            entityName={currentEntity}
+            data={parsedData}
+            validationResult={validationResult}
+            schema={currentSchema ? {
+              required: currentSchema.required,
+              properties: currentSchema.properties as Record<string, unknown>
+            } : undefined}
+          />
+        )}
+
+        {/* Gap Analysis for BioRAM entities */}
+        {validationResult && parsedData && isBioramEntity && (
+          <BioramDataGapAnalysis
             entityName={currentEntity}
             data={parsedData}
             validationResult={validationResult}

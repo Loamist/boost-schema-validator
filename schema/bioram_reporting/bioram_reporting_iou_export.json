@@ -1,0 +1,67 @@
+{
+  "@context": {
+    "boost": "https://github.com/carbondirect/BOOST/contexts/",
+    "bioram": "https://github.com/carbondirect/BOOST/contexts/bioram/"
+  },
+  "@type": "BioramReporting",
+  "facilityEntityId": "SHERWOOD-BIOMASS-POWER-001",
+  "bioramContractId": "BR-PGE-2024-01-A",
+  "reportingPeriod": "2025-Q3",
+  "totalBiomassVolume": 3500.0,
+  "totalEnergyGenerated": 2800.0,
+  "complianceStatus": "compliant",
+  "submissionDate": "2025-10-15T14:30:00Z",
+  "verificationRequired": true,
+  "verificationDate": "2025-10-10T16:45:00Z",
+  "reportingDeadline": "2025-10-31",
+  "hhzPercentageTarget": 0.80,
+  "hhzPercentageActual": 0.85,
+  "totalHhzDeliveredBDT": 2975.0,
+  "totalHhzUsageToDateBDT": 8925.0,
+  "hhzTierBreakdown": {
+    "tier1BDT": 2100.0,
+    "tier1Percentage": 0.60,
+    "tier2BDT": 875.0,
+    "tier2Percentage": 0.25,
+    "nonHhzBDT": 525.0,
+    "nonHhzPercentage": 0.15
+  },
+  "fuelSourcingSummary": {
+    "totalSuppliers": 4,
+    "averageHaulDistance": 52.0,
+    "fuelTypeBreakdown": [
+      {
+        "fuelType": "forest_harvest_residue",
+        "volume": 2100.0,
+        "percentage": 60.0,
+        "hhzTier": "Tier1"
+      },
+      {
+        "fuelType": "lumber_mill_residual",
+        "volume": 875.0,
+        "percentage": 25.0,
+        "hhzTier": "Tier2"
+      },
+      {
+        "fuelType": "agricultural_residue",
+        "volume": 525.0,
+        "percentage": 15.0,
+        "hhzTier": "NonHHZ"
+      }
+    ]
+  },
+  "performanceMetrics": {
+    "capacityFactor": 0.82,
+    "availabilityFactor": 0.94,
+    "nameplateMW": 25.0,
+    "netContractMW": 22.0
+  },
+  "financialSummary": {
+    "contractPricePerMWh": 120.0,
+    "totalContractValue": 336000.0,
+    "fuelCosts": 176600.0,
+    "averageFuelPriceBDT": 50.46
+  },
+  "serviceTerritory": "PGE",
+  "lastUpdated": "2025-10-15T16:22:00Z"
+}

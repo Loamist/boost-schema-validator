@@ -1,0 +1,93 @@
+{
+  "@context": {
+    "Organization": "https://github.com/carbondirect/BOOST/schemas#Organization",
+    "boost": "https://github.com/carbondirect/BOOST/contexts/"
+  },
+  "@type": "Organization",
+  "@id": "https://github.com/carbondirect/BOOST/schemas/organization/ORG-SIERRA-BIOMASS-ENERGY-001",
+  "organizationId": "ORG-SIERRA-BIOMASS-ENERGY-001",
+  "organizationName": "Sierra Biomass Energy LLC",
+  "organizationType": "bioram_facility",
+  "primaryGeographicDataId": "GEO-SIERRA-FACILITY-001",
+  "operationalAreas": [
+    "GEO-SIERRA-FACILITY-001",
+    "GEO-SIERRA-FUELYARD-001"
+  ],
+  "contactEmail": "operations@sierrabiomass.com",
+  "contactPhone": "+15595550123",
+  "certifications": [
+    "CEC-RPS-2024-0847"
+  ],
+  "establishedDate": "2018-03-15",
+  "taxId": "94-7654321",
+  "website": "https://www.sierrabiomass.com",
+  "bioramProjectDetails": {
+    "projectName": "Sierra Biomass Power Project",
+    "companyLegalName": "Sierra Biomass Energy LLC",
+    "companyStreetAddress": "1234 Forest Power Road",
+    "companyCity": "Fresno",
+    "companyState": "CA",
+    "companyZipCode": "93720",
+    "primaryContact": {
+      "name": "John Miller",
+      "title": "Plant Manager",
+      "officePhone": "+15595550123",
+      "cellPhone": "+15595550124",
+      "email": "jmiller@sierrabiomass.com"
+    },
+    "secondaryContact": {
+      "name": "Sarah Chen",
+      "title": "Operations Director",
+      "officePhone": "+15595550125",
+      "email": "schen@sierrabiomass.com"
+    }
+  },
+  "bioramCapacity": {
+    "nameplateMWAC": 25.0,
+    "netContractMWAC": 22.0,
+    "capacityFactor": 0.82,
+    "expectedMWhFirstYear": 158840.0,
+    "degradationPercentPerYear": 0.5
+  },
+  "bioramEligibility": {
+    "cecCertified": true,
+    "cecCertificationNumber": "CEC-RPS-2024-0847",
+    "provenTechnology": true,
+    "siteControlType": "direct_ownership",
+    "siteControlPercentage": 100
+  },
+  "bioramPpaTerms": {
+    "deliveryTermYears": 20,
+    "bidType": "FCDS",
+    "isEnergyOnly": false,
+    "schedulingCoordinator": "buyer",
+    "excessSalesOption": "full_buy_sell",
+    "expectedDeliveryStartDate": "2025-06-01",
+    "contractPricePerMWh": 120.0
+  },
+  "bioramInterconnection": {
+    "interconnectionPoint": "Fresno Substation 115kV",
+    "cityOfInterconnection": "Fresno",
+    "interconnectionCOD": "2025-05-15",
+    "interconnectionApplication": "CAISO",
+    "queuePosition": "Q1847",
+    "phaseIIStudyCompleted": true,
+    "fcdsStatus": "full_capacity",
+    "nonReimbursableCostsUSD": 2500000,
+    "reimbursableCostsUSD": 1800000
+  },
+  "bioramFuelPlan": {
+    "hhzFuelTargets": {
+      "year1": 0.40,
+      "year2": 0.50,
+      "year3": 0.60,
+      "year4Plus": 0.80
+    },
+    "primaryHhzSources": ["Tier1", "Tier2"],
+    "fuelAvailabilityStudyCompleted": true,
+    "averageHaulDistanceMiles": 55,
+    "contingencyTransportation": true
+  },
+  "bioramServiceTerritory": "SDGE",
+  "lastUpdated": "2025-07-21T17:00:00Z"
+}
