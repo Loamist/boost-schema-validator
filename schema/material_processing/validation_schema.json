@@ -1,0 +1,413 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/material-processing",
+    "title": "Material Processing",
+    "description": "Processing operations that transform TRUs with plant part tracking",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "MaterialProcessing"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "processingId": {
+        "type": "string",
+        "pattern": "^MP-[A-Z0-9-_]+$"
+      },
+      "inputTraceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$"
+      },
+      "outputTraceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$"
+      },
+      "processType": {
+        "type": "string",
+        "enum": [
+          "felling",
+          "delimbing",
+          "crosscutting",
+          "chipping",
+          "debarking",
+          "assortment",
+          "pelletizing",
+          "transport",
+          "drying",
+          "sizing"
+        ]
+      },
+      "processTimestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "processingGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$"
+      },
+      "operatorId": {
+        "type": "string",
+        "pattern": "^OP-[A-Z0-9-_]+$"
+      },
+      "inputComposition": {
+        "type": "string"
+      },
+      "outputComposition": {
+        "type": "string"
+      },
+      "inputVolume": {
+        "type": "number",
+        "minimum": 0
+      },
+      "outputVolume": {
+        "type": "number",
+        "minimum": 0
+      },
+      "volumeLoss": {
+        "type": "number",
+        "minimum": 0
+      },
+      "qualityMetrics": {
+        "type": "string"
+      },
+      "equipmentUsed": {
+        "type": "string"
+      },
+      "expectedLossRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Expected material loss rate for this process type as decimal (e.g., 0.02 = 2% expected loss)"
+      },
+      "acceptableRange": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minItems": 2,
+        "maxItems": 2,
+        "description": "Array of [min, max] acceptable loss percentages as decimals"
+      },
+      "lossJustification": {
+        "type": "string",
+        "description": "Required explanation when losses exceed acceptable range"
+      },
+      "processStandard": {
+        "type": "string",
+        "enum": [
+          "industry_standard",
+          "equipment_manufacturer",
+          "facility_specific",
+          "regulatory_requirement",
+          "best_practice"
+        ],
+        "description": "Standard or authority defining acceptable loss tolerances for this process"
+      },
+      "toleranceValidation": {
+        "type": "object",
+        "properties": {
+          "actualLossRate": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Calculated actual loss rate as decimal (volumeLoss / inputVolume)"
+          },
+          "withinTolerance": {
+            "type": "boolean",
+            "description": "Whether the actual loss falls within acceptable range"
+          },
+          "deviationFromExpected": {
+            "type": "number",
+            "description": "Deviation from expected loss rate (actualLossRate - expectedLossRate)"
+          }
+        },
+        "description": "Validation results for process loss tolerance compliance"
+      },
+      "inputPlantParts": {
+        "type": "object",
+        "patternProperties": {
+          "^(trunk|branches|twigs|bark|heartwood|sapwood|leaves|needles|seeds|nuts|cones|stalks|straw|husks|hulls|chaff|stubble)$": {
+            "type": "object",
+            "properties": {
+              "volume": {
+                "type": "number",
+                "minimum": 0
+              },
+              "percentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "qualityGrade": {
+                "type": "string",
+                "enum": [
+                  "Grade-A",
+                  "Grade-B",
+                  "Grade-C",
+                  "Grade-D",
+                  "Premium",
+                  "Standard",
+                  "Economy",
+                  "Utility",
+                  "Structural",
+                  "Non-structural",
+                  "Fuel",
+                  "Residue",
+                  "Export",
+                  "Domestic",
+                  "Sawlog",
+                  "Pulpwood",
+                  "Biomass"
+                ],
+                "description": "Quality grade with comprehensive standard classification"
+              }
+            },
+            "required": [
+              "volume",
+              "percentage"
+            ]
+          }
+        },
+        "description": "Plant parts in input TRU before processing"
+      },
+      "outputPlantParts": {
+        "type": "object",
+        "patternProperties": {
+          "^(trunk|branches|twigs|bark|heartwood|sapwood|leaves|needles|seeds|nuts|cones|stalks|straw|husks|hulls|chaff|stubble)$": {
+            "type": "object",
+            "properties": {
+              "volume": {
+                "type": "number",
+                "minimum": 0
+              },
+              "percentage": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "qualityGrade": {
+                "type": "string",
+                "enum": [
+                  "Grade-A",
+                  "Grade-B",
+                  "Grade-C",
+                  "Grade-D",
+                  "Premium",
+                  "Standard",
+                  "Economy",
+                  "Utility",
+                  "Structural",
+                  "Non-structural",
+                  "Fuel",
+                  "Residue",
+                  "Export",
+                  "Domestic",
+                  "Sawlog",
+                  "Pulpwood",
+                  "Biomass"
+                ],
+                "description": "Quality grade with comprehensive standard classification"
+              }
+            },
+            "required": [
+              "volume",
+              "percentage"
+            ]
+          }
+        },
+        "description": "Plant parts in output TRU after processing"
+      },
+      "plantPartTransformations": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "inputPart": {
+              "type": "string",
+              "enum": [
+                "trunk",
+                "branches",
+                "twigs",
+                "bark",
+                "heartwood",
+                "sapwood",
+                "leaves",
+                "needles",
+                "seeds",
+                "nuts",
+                "cones",
+                "stalks",
+                "straw",
+                "husks",
+                "hulls",
+                "chaff",
+                "stubble"
+              ]
+            },
+            "outputPart": {
+              "type": "string",
+              "enum": [
+                "trunk",
+                "branches",
+                "twigs",
+                "bark",
+                "heartwood",
+                "sapwood",
+                "leaves",
+                "needles",
+                "seeds",
+                "nuts",
+                "cones",
+                "stalks",
+                "straw",
+                "husks",
+                "hulls",
+                "chaff",
+                "stubble",
+                "sawdust",
+                "chips",
+                "mulch",
+                "pellets"
+              ]
+            },
+            "transformationType": {
+              "type": "string",
+              "enum": [
+                "separation",
+                "size_reduction",
+                "form_change",
+                "quality_upgrade",
+                "waste_removal"
+              ]
+            },
+            "inputVolume": {
+              "type": "number",
+              "minimum": 0
+            },
+            "outputVolume": {
+              "type": "number",
+              "minimum": 0
+            },
+            "recoveryRate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "qualityChange": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "inputPart",
+            "outputPart",
+            "transformationType",
+            "inputVolume",
+            "outputVolume"
+          ]
+        },
+        "description": "Specific plant part transformations during processing"
+      },
+      "plantPartLosses": {
+        "type": "object",
+        "patternProperties": {
+          "^(trunk|branches|twigs|bark|heartwood|sapwood|leaves|needles|seeds|nuts|cones|stalks|straw|husks|hulls|chaff|stubble)$": {
+            "type": "object",
+            "properties": {
+              "volume": {
+                "type": "number",
+                "minimum": 0
+              },
+              "lossReason": {
+                "type": "string",
+                "enum": [
+                  "sawdust",
+                  "trimming",
+                  "defect_removal",
+                  "moisture_loss",
+                  "handling_damage"
+                ]
+              },
+              "disposalMethod": {
+                "type": "string",
+                "enum": [
+                  "fuel",
+                  "compost",
+                  "waste",
+                  "recycling",
+                  "byproduct_sale"
+                ]
+              }
+            },
+            "required": [
+              "volume",
+              "lossReason"
+            ]
+          }
+        },
+        "description": "Volume losses by plant part during processing"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "processingId",
+      "inputTraceableUnitId",
+      "outputTraceableUnitId",
+      "processType",
+      "processTimestamp",
+      "inputVolume",
+      "outputVolume"
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "MaterialProcessing",
+      "primaryKey": "processingId",
+      "area": "core_traceability",
+      "description": "Processing operations that transform biomass materials"
+    },
+    "relationships": [
+      {
+        "field": "inputTraceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "processes input",
+        "example": "Chipping-789 processes whole tree TRU-456 into wood chips"
+      },
+      {
+        "field": "outputTraceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "produces output",
+        "example": "Chipping-789 produces wood chip pile TRU-790"
+      },
+      {
+        "field": "processingGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "processed at"
+      },
+      {
+        "field": "operatorId",
+        "targetEntity": "Operator",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "operated by"
+      }
+    ]
+  }
+}

@@ -1,0 +1,241 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/organization",
+    "title": "Organization",
+    "description": "Organization entity with geographic data references and certification management capabilities for Phase 2 BOOST traceability system enhancements",
+    "type": "object",
+  "properties": {
+    "@context": {
+      "type": "object",
+      "description": "JSON-LD context for semantic web compatibility"
+    },
+    "@type": {
+      "type": "string",
+      "const": "Organization",
+      "description": "JSON-LD type identifier"
+    },
+    "@id": {
+      "type": "string",
+      "format": "uri",
+      "description": "Unique URI identifier for the organization"
+    },
+    "organizationId": {
+      "type": "string",
+      "description": "Unique identifier for the organization",
+      "minLength": 5,
+      "maxLength": 50,
+      "pattern": "^ORG-[A-Z0-9-_]+$",
+      "examples": ["ORG-001", "ORG-FORESTCO-PACIFIC"]
+    },
+    "organizationName": {
+      "type": "string",
+      "description": "Legal name of the organization",
+      "minLength": 2,
+      "maxLength": 200,
+      "examples": ["Pacific Forest Products LLC", "Klamath Sustainable Forestry"]
+    },
+    "organizationType": {
+      "type": "string",
+      "description": "Type of organization",
+      "enum": ["harvester", "processor", "certifier", "transporter", "supplier", "manufacturer", "producer", "importer", "blender", "distributor"]
+    },
+    "primaryGeographicDataId": {
+      "type": "string",
+      "description": "Foreign key to primary operational location",
+      "pattern": "^GEO-[A-Z0-9-_]+$",
+      "examples": ["GEO-MILL-PACIFIC-001", "GEO-OFFICE-KLAMATH"]
+    },
+    "operationalAreas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$"
+      },
+      "description": "List of geographic areas where organization operates",
+      "examples": [["GEO-FOREST-AREA-01", "GEO-MILL-SITE-02"]]
+    },
+    "contactEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Primary contact email address",
+      "examples": ["operations@pacificforest.com", "info@klamathforestry.org"]
+    },
+    "contactPhone": {
+      "type": "string",
+      "description": "Primary contact phone number",
+      "pattern": "^\\+[1-9]\\d{1,14}$",
+      "examples": ["+1-555-123-4567", "+1-800-FOREST-1"]
+    },
+    "certifications": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^CERT-[A-Z0-9-_]+$"
+      },
+      "uniqueItems": true,
+      "description": "List of certification IDs held by organization",
+      "examples": [["CERT-FSC-001", "CERT-SFI-002"]]
+    },
+    "establishedDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date organization was established",
+      "examples": ["1995-03-15", "2010-07-01"]
+    },
+    "taxId": {
+      "type": "string",
+      "description": "Tax identification number",
+      "examples": ["12-3456789", "98-7654321"]
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "description": "Organization website URL",
+      "examples": ["https://www.pacificforest.com", "https://klamathforestry.org"]
+    },
+    "lcfsRegistrationId": {
+      "type": "string",
+      "description": "CARB LCFS registration identifier for regulated entities (external system reference)",
+      "pattern": "^LCFS-REG-[0-9]{4}-[0-9]{3}$",
+      "examples": ["LCFS-REG-2025-003", "LCFS-REG-2025-127"],
+      "boost_external_reference": true
+    },
+    "regulatedEntityType": {
+      "type": "string",
+      "enum": ["producer", "importer", "blender", "distributor", "not_regulated"],
+      "description": "LCFS regulated entity classification"
+    },
+    "facilityCapacity": {
+      "type": "object",
+      "properties": {
+        "annualCapacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 999999999,
+          "description": "Annual production or handling capacity"
+        },
+        "unit": {
+          "type": "string",
+          "enum": ["gallons_renewable_diesel", "gallons_ethanol", "gallons_biodiesel", "gallons_gasoline", "gallons_diesel", "GGE", "MJ", "MWh"],
+          "description": "Unit for capacity measurement"
+        }
+      },
+      "description": "Facility production or handling capacity for LCFS reporting"
+    },
+    "bioramRegistrationId": {
+      "type": "string",
+      "description": "CEC BioRAM registration identifier for biomass power facilities (external system reference)",
+      "pattern": "^CEC-BIO-[0-9]{3}$",
+      "examples": ["CEC-BIO-012", "CEC-BIO-087"],
+      "boost_external_reference": true
+    },
+    "bioramFacilityId": {
+      "type": "string",
+      "description": "BioRAM facility identifier for program tracking (external system reference)",
+      "pattern": "^BIORAM-FAC-[0-9]{4}-[0-9]{3}$",
+      "examples": ["BIORAM-FAC-2025-001", "BIORAM-FAC-2025-087"],
+      "boost_external_reference": true
+    },
+    "bioramContractId": {
+      "type": "string",
+      "description": "BioRAM competitive procurement contract identifier (external system reference)",
+      "pattern": "^BR-RFO-[0-9]{4}-[0-9]{2}$",
+      "examples": ["BR-RFO-2024-01", "BR-RFO-2025-03"],
+      "boost_external_reference": true
+    },
+    "powerPurchaseAgreementId": {
+      "type": "string",
+      "description": "Power purchase agreement identifier with utility offtaker",
+      "examples": ["PPA-PG-E-2025-BR-001", "PPA-SCE-2025-BR-007"]
+    },
+    "utilityOfftaker": {
+      "type": "string",
+      "description": "Utility company purchasing power under BioRAM contract",
+      "examples": ["PG&E", "SCE", "SDG&E"]
+    },
+    "gridInterconnectionPoint": {
+      "type": "string",
+      "description": "Grid interconnection substation or transmission point",
+      "examples": ["PG&E-ELDORADO-SUBSTATION", "SCE-RIVERSIDE-SUBSTATION"]
+    },
+    "airDistrictPermit": {
+      "type": "string",
+      "description": "Air quality management district permit identifier",
+      "examples": ["EDCAQMD-2025-BIOMASS-001", "SCAQMD-2025-BIORAM-012"]
+    },
+    "californiaSRA": {
+      "type": "boolean",
+      "description": "Whether facility operates within California State Responsibility Area"
+    },
+    "bioramEligibilityStatus": {
+      "type": "string",
+      "enum": ["qualified", "pending", "suspended", "not_eligible"],
+      "description": "Current BioRAM program eligibility status"
+    },
+    "fireHazardZoneDesignation": {
+      "type": "string",
+      "enum": ["Very High", "High", "Moderate", "Low"],
+      "description": "CAL FIRE fire hazard severity zone designation for facility location"
+    },
+    "calFireJurisdiction": {
+      "type": "string",
+      "description": "CAL FIRE unit or jurisdiction for facility area",
+      "examples": ["EL_DORADO_UNIT", "RIVERSIDE_UNIT", "SAN_BERNARDINO_UNIT"]
+    },
+    "operationalStatus": {
+      "type": "string",
+      "enum": ["active", "inactive", "suspended", "under_construction"],
+      "description": "Current operational status of the organization"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of the most recent data update"
+    }
+  },
+  "required": [
+    "@context",
+    "@type",
+    "@id", 
+    "organizationId",
+    "organizationName",
+    "organizationType"
+  ],
+  "additionalProperties": false
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "Organization",
+      "primaryKey": "organizationId",
+      "area": "organizational_foundation",
+      "description": "🏢 Organization entity for supply chain participants. Equipment, Operator, TrackingPoint, and TraceableUnit relationships are maintained via foreign keys in those entities rather than redundant arrays, following 3NF normalization principles."
+    },
+    "relationships": [
+      {
+        "field": "primaryGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "headquartered at",
+        "example": "'Olympic Forest Products' headquartered at 'Seattle Mill Site'"
+      },
+      {
+        "field": "operationalAreas",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-many",
+        "required": false,
+        "label": "operates in areas",
+        "example": "'West Coast Timber' operates in 'Cascade Forest' + 'Olympic Peninsula'"
+      },
+      {
+        "field": "certifications",
+        "targetEntity": "Certificate",
+        "relationshipType": "many-to-many",
+        "required": false,
+        "label": "holds certifications",
+        "example": "'Forest Company' holds CERT-FSC-001 + CERT-SFI-002"
+      }
+    ]
+  }
+}

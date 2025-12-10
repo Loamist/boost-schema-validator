@@ -1,0 +1,267 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/certificate",
+    "title": "Certificate",
+    "description": "Certificate entity representing formal certification records issued by certification bodies",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object",
+        "description": "JSON-LD context for semantic web compatibility"
+      },
+      "@type": {
+        "type": "string",
+        "const": "Certificate",
+        "description": "JSON-LD type identifier"
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri",
+        "description": "Unique URI identifier for the certificate"
+      },
+      "certificateId": {
+        "type": "string",
+        "description": "Standard certificate identifier using CERT- pattern",
+        "pattern": "^CERT-[A-Z0-9-_]+$",
+        "minLength": 5,
+        "maxLength": 50,
+        "examples": [
+          "CERT-SFI-001",
+          "CERT-FSC-12345"
+        ]
+      },
+      "certificateNumber": {
+        "type": "string",
+        "pattern": "^[A-Z0-9][A-Z0-9/_-]+$",
+        "description": "Official certificate number (primary key)",
+        "minLength": 1,
+        "examples": [
+          "SFI-2025-12345",
+          "FSC-C123456",
+          "PEFC/12-34-567"
+        ]
+      },
+      "CertificationSchemeId": {
+        "type": "string",
+        "pattern": "^CERT-SCHEME-[A-Z0-9-_]+$",
+        "description": "Uses EntityNameId convention referencing CertificationScheme",
+        "minLength": 1,
+        "examples": [
+          "SFI-CoC",
+          "FSC-CoC",
+          "PEFC-CoC"
+        ]
+      },
+      "CertificationBodyId": {
+        "type": "string",
+        "pattern": "^CB-[A-Z0-9-_]+$",
+        "description": "Uses EntityNameId convention referencing CertificationBody",
+        "minLength": 1,
+        "examples": [
+          "SFI",
+          "FSC-US",
+          "PEFC-001"
+        ]
+      },
+      "OrganizationId": {
+        "type": "string",
+        "description": "Uses EntityNameId convention referencing Organization receiving the certificate",
+        "minLength": 1,
+        "pattern": "^ORG-[A-Z0-9-_]+$",
+        "examples": [
+          "ORG-FORESTCO-001",
+          "ORG-SAWMILL-PACIFIC"
+        ]
+      },
+      "dateOfIssue": {
+        "type": "string",
+        "format": "date",
+        "description": "Date of certificate issuance",
+        "examples": [
+          "2025-01-01"
+        ]
+      },
+      "dateOfExpiry": {
+        "type": "string",
+        "format": "date",
+        "description": "Certificate expiry date",
+        "examples": [
+          "2030-01-01"
+        ]
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "active",
+          "expired",
+          "revoked",
+          "suspended"
+        ],
+        "description": "Current certificate status"
+      },
+      "scopeOfCertification": {
+        "type": "string",
+        "description": "Summary of certification coverage",
+        "minLength": 1,
+        "examples": [
+          "Chain of Custody for lumber and pulp",
+          "Forest Management"
+        ]
+      },
+      "versionNumber": {
+        "type": "string",
+        "description": "Version identifier of the certification standard",
+        "examples": [
+          "v3-1",
+          "V1.1",
+          "2020",
+          "ST 2002"
+        ]
+      },
+      "versionYear": {
+        "type": "integer",
+        "description": "Year of the standard's relevant version release",
+        "minimum": 1990,
+        "maximum": 2050,
+        "examples": [
+          2022,
+          2020,
+          2025
+        ]
+      },
+      "conditionalRequirements": {
+        "type": "array",
+        "description": "Special conditions or requirements",
+        "items": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "examples": [
+                "surveillance",
+                "corrective-action",
+                "scope-limitation"
+              ]
+            },
+            "description": {
+              "type": "string"
+            },
+            "dueDate": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      },
+      "suspensionHistory": {
+        "type": "array",
+        "description": "History of certificate suspensions",
+        "items": {
+          "type": "object",
+          "properties": {
+            "date": {
+              "type": "string",
+              "format": "date"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "restoredDate": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      },
+      "auditSchedule": {
+        "type": "object",
+        "description": "Scheduled audit information",
+        "properties": {
+          "nextAudit": {
+            "type": "string",
+            "format": "date"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "initial",
+              "surveillance",
+              "recertification"
+            ]
+          },
+          "auditorId": {
+            "type": "string"
+          }
+        }
+      },
+      "certificateDocument": {
+        "type": "string",
+        "format": "uri",
+        "description": "Link or reference to certificate document",
+        "examples": [
+          "https://sfiprogram.org/certificates/2025-12345.pdf"
+        ]
+      },
+      "VerificationStatementId": {
+        "type": "string",
+        "pattern": "^VS-[A-Z0-9-_]+$",
+        "description": "Uses EntityNameId convention referencing VerificationStatement for third-party validation"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "certificateId",
+      "certificateNumber",
+      "CertificationSchemeId",
+      "CertificationBodyId",
+      "OrganizationId",
+      "dateOfIssue",
+      "dateOfExpiry",
+      "status",
+      "scopeOfCertification",
+      "versionNumber"
+    ],
+    "additionalProperties": false
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "Certificate",
+      "primaryKey": "certificateNumber",
+      "area": "organizational_foundation",
+      "description": "Formal certification records issued by certification bodies"
+    },
+    "relationships": [
+      {
+        "field": "CertificationSchemeId",
+        "targetEntity": "CertificationScheme",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "certified under"
+      },
+      {
+        "field": "CertificationBodyId",
+        "targetEntity": "CertificationBody",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "issued by"
+      },
+      {
+        "field": "OrganizationId",
+        "targetEntity": "Organization",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "held by"
+      },
+      {
+        "field": "VerificationStatementId",
+        "targetEntity": "VerificationStatement",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "verified by"
+      }
+    ]
+  }
+}

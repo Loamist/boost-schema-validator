@@ -1,0 +1,136 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/claim",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "Claim"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "claimId": {
+        "type": "string",
+        "pattern": "^CLA-[A-Z0-9-_]+$"
+      },
+      "TraceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$",
+        "description": "Referenced traceable unit - uses EntityNameId convention referencing TraceableUnit"
+      },
+      "claimType": {
+        "type": "string",
+        "enum": [
+          "SBP-compliant",
+          "FSC Mix",
+          "RSB Global",
+          "PEFC",
+          "organic",
+          "FSC 100%",
+          "FSC Recycled",
+          "ISCC EU",
+          "RED II"
+        ]
+      },
+      "CertificationSchemeId": {
+        "type": "string",
+        "pattern": "^CERT-SCHEME-[A-Z0-9-_]+$",
+        "description": "Certification scheme - uses EntityNameId convention referencing CertificationScheme"
+      },
+      "statement": {
+        "type": "string"
+      },
+      "validated": {
+        "type": "boolean"
+      },
+      "validatedBy": {
+        "type": "string"
+      },
+      "validationDate": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "applicableSpecies": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "claimPercentage": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "claimScope": {
+        "type": "string",
+        "enum": [
+          "harvest",
+          "processing",
+          "transport",
+          "full_chain"
+        ]
+      },
+      "evidenceDocumentId": {
+        "type": "string"
+      },
+      "claimExpiry": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "inheritedFromTRU": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "claimId",
+      "TraceableUnitId",
+      "claimType",
+      "statement",
+      "validated"
+    ],
+    "title": "Claim",
+    "description": "Claim entity in BOOST data model"
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "Claim",
+      "primaryKey": "claimId",
+      "area": "measurement_verification",
+      "description": "Sustainability claims and certifications for biomass materials"
+    },
+    "relationships": [
+      {
+        "field": "TraceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "claim applies to"
+      },
+      {
+        "field": "CertificationSchemeId",
+        "targetEntity": "CertificationScheme",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "certified under"
+      }
+    ]
+  }
+}

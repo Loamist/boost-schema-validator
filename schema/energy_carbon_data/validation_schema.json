@@ -1,0 +1,214 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/energy-carbon-data",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "EnergyCarbonData"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "energyCarbonDataId": {
+        "type": "string",
+        "pattern": "^ECD-[A-Z0-9-_]+$"
+      },
+      "dataType": {
+        "type": "string",
+        "enum": [
+          "moisture",
+          "transport",
+          "fuel consumption",
+          "carbon_intensity",
+          "energy_content",
+          "emissions",
+          "lifecycle_assessment"
+        ]
+      },
+      "value": {
+        "type": "number"
+      },
+      "unit": {
+        "type": "string",
+        "enum": [
+          "percentage",
+          "kg_CO2e",
+          "liters",
+          "MJ",
+          "gCO2e/MJ",
+          "MJ/kg",
+          "gCO2e/gallon",
+          "MJ/gallon"
+        ]
+      },
+      "source": {
+        "type": "string",
+        "enum": [
+          "field_measurement",
+          "laboratory_analysis",
+          "default_values",
+          "calculated"
+        ]
+      },
+      "measurementMethod": {
+        "type": "string",
+        "enum": [
+          "oven_dry",
+          "air_dry",
+          "kiln_dry",
+          "moisture_meter",
+          "capacitance",
+          "resistance",
+          "dielectric",
+          "pin_type",
+          "pinless",
+          "manual",
+          "automated",
+          "harvester_head",
+          "mill_scale",
+          "truck_scale",
+          "optical",
+          "laser",
+          "ultrasonic",
+          "photogrammetry"
+        ],
+        "description": "Method used for measurement with comprehensive standard values"
+      },
+      "traceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$"
+      },
+      "measurementRecordId": {
+        "type": "string",
+        "pattern": "^MR-[A-Z0-9-_]+$"
+      },
+      "measurementTimestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "measurementGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$"
+      },
+      "temperatureConditions": {
+        "type": "number"
+      },
+      "humidityConditions": {
+        "type": "number"
+      },
+      "lcfsPathwayType": {
+        "type": "string",
+        "enum": [
+          "Lookup_Table",
+          "Tier_1",
+          "Tier_2",
+          "Not_LCFS"
+        ],
+        "description": "LCFS pathway tier classification"
+      },
+      "energyEconomyRatio": {
+        "type": "number",
+        "minimum": 0.5,
+        "maximum": 3.0,
+        "description": "Energy economy ratio for LCFS credit calculation"
+      },
+      "lifeCycleStage": {
+        "type": "string",
+        "enum": [
+          "feedstock",
+          "production",
+          "transport",
+          "distribution",
+          "combustion",
+          "full_lifecycle"
+        ],
+        "description": "Lifecycle stage for carbon intensity data"
+      },
+      "regulatoryBenchmark": {
+        "type": "number",
+        "description": "CARB regulatory benchmark for comparison (gCO2e/MJ)"
+      },
+      "caGreetVersion": {
+        "type": "string",
+        "pattern": "^[0-9]+\\.[0-9]+$",
+        "description": "CA-GREET model version used for calculation"
+      },
+      "qualityAssurance": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "energyCarbonDataId",
+      "dataType",
+      "value",
+      "unit",
+      "source"
+    ],
+    "title": "Energy Carbon Data",
+    "description": "EnergyCarbonData entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "energyCarbonDataId"
+        }
+      },
+      {
+        "!!": {
+          "var": "dataType"
+        }
+      },
+      {
+        "!!": {
+          "var": "value"
+        }
+      },
+      {
+        "!!": {
+          "var": "unit"
+        }
+      },
+      {
+        "!!": {
+          "var": "source"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "EnergyCarbonData",
+      "primaryKey": "energyCarbonDataId",
+      "area": "compliance_reporting",
+      "description": "Energy and carbon intensity data for lifecycle assessments"
+    },
+    "relationships": [
+      {
+        "field": "traceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "carbon profile of"
+      },
+      {
+        "field": "measurementRecordId",
+        "targetEntity": "MeasurementRecord",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "based on measurement"
+      }
+    ]
+  }
+}

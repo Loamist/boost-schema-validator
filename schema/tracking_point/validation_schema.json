@@ -1,0 +1,137 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/tracking-point",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "TrackingPoint"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "trackingPointId": {
+        "type": "string",
+        "pattern": "^TP-[A-Z0-9-_]+$",
+        "minLength": 5,
+        "maxLength": 50,
+        "description": "Unique identifier for the tracking point",
+        "examples": ["TP-SITE-ALPHA", "TP-MILL-GATE-001", "TP-ROAD-MAIN"]
+      },
+      "pointType": {
+        "type": "string",
+        "enum": [
+          "harvest_site",
+          "consolidation_point",
+          "mill_entrance",
+          "transfer_station",
+          "storage_facility",
+          "quality_control_point",
+          "mobile_processing_unit"
+        ],
+        "description": "Type of tracking point - flexible configuration based on operational needs"
+      },
+      "coordinatePrecision": {
+        "type": "number",
+        "minimum": 1,
+        "maximum": 100,
+        "description": "Required coordinate precision in meters (e.g., 5 = ±5m accuracy)"
+      },
+      "configurationRole": {
+        "type": "string",
+        "enum": [
+          "required",
+          "optional",
+          "seasonal",
+          "conditional"
+        ],
+        "description": "Role of this point in the overall tracking configuration"
+      },
+      "geographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Foreign key to GeographicData entity"
+      },
+      "equipmentUsed": {
+        "type": "string",
+        "description": "Equipment deployed at this tracking point"
+      },
+      "operatorId": {
+        "type": "string",
+        "pattern": "^OP-[A-Z0-9-_]+$",
+        "description": "Foreign key to Operator entity"
+      },
+      "establishedTimestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "trackingPointId",
+      "pointType",
+      "geographicDataId",
+      "equipmentUsed",
+      "establishedTimestamp"
+    ],
+    "title": "Tracking Point",
+    "description": "TrackingPoint entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "trackingPointId"
+        }
+      },
+      {
+        "!!": {
+          "var": "pointType"
+        }
+      },
+      {
+        "!!": {
+          "var": "geographicDataId"
+        }
+      },
+      {
+        "!!": {
+          "var": "equipmentUsed"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "TrackingPoint",
+      "primaryKey": "trackingPointId",
+      "area": "geographic_tracking",
+      "description": "Specific tracking locations for biomass movement monitoring"
+    },
+    "relationships": [
+      {
+        "field": "geographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "located at"
+      },
+      {
+        "field": "operatorId",
+        "targetEntity": "Operator",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "operated by"
+      }
+    ]
+  }
+}

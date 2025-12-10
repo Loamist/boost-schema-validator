@@ -1,0 +1,540 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/traceable-unit",
+    "title": "Traceable Unit",
+    "description": "Unique biomass tracking unit with BOOST traceability system integration",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object",
+        "description": "JSON-LD context defining semantic vocabulary mappings"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "TraceableUnit"
+        ],
+        "description": "Entity type identifier for JSON-LD processing"
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri",
+        "description": "Globally unique IRI identifying this specific entity instance"
+      },
+      "traceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$",
+        "description": "Unique ID for each TRU"
+      },
+      "unitType": {
+        "type": "string",
+        "enum": [
+          "individual_log",
+          "pile",
+          "volume_aggregation",
+          "processed_batch"
+        ],
+        "description": "Type of traceable unit"
+      },
+      "uniqueIdentifier": {
+        "type": "string",
+        "description": "Primary identifier - trip ticket ID, RFID tag, QR code, barcode, biometric signature, or manual ID"
+      },
+      "identificationMethodId": {
+        "type": "string",
+        "pattern": "^IM-[A-Z0-9-_]+$",
+        "description": "Foreign key to IdentificationMethod entity"
+      },
+      "identificationConfidence": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100,
+        "description": "Confidence score for primary identification method (0-100)"
+      },
+      "secondaryIdentifiers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "identifierType": {
+              "type": "string",
+              "enum": [
+                "trip_ticket",
+                "rfid",
+                "qr_code",
+                "barcode",
+                "biometric",
+                "manual_id",
+                "photo_documentation"
+              ]
+            },
+            "identifierValue": {
+              "type": "string"
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "identifierType",
+            "identifierValue"
+          ]
+        },
+        "description": "Secondary/backup identification methods"
+      },
+      "methodReadinessLevel": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 9,
+        "description": "Technology Readiness Level (TRL 1-9) for identification method used"
+      },
+      "totalVolumeM3": {
+        "type": "number",
+        "minimum": 0,
+        "description": "Total volume of the traceable unit in cubic meters"
+      },
+      "currentGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Current location - uses EntityNameId convention referencing GeographicData"
+      },
+      "harvestGeographicDataId": {
+        "type": "string",
+        "pattern": "^GEO-[A-Z0-9-_]+$",
+        "description": "Harvest location - uses EntityNameId convention referencing GeographicData"
+      },
+      "createdTimestamp": {
+        "type": "string",
+        "format": "date-time",
+        "description": "When the TRU was created"
+      },
+      "harvesterId": {
+        "type": "string",
+        "description": "Foreign key to harvesting organization",
+        "pattern": "^ORG-[A-Z0-9-_]+$"
+      },
+      "operatorId": {
+        "type": "string",
+        "pattern": "^OP-[A-Z0-9-_]+$",
+        "description": "Foreign key to operator"
+      },
+      "materialTypeId": {
+        "type": "string",
+        "pattern": "^MAT-[A-Z0-9-_]+$",
+        "description": "Foreign key to Material entity (reference table)"
+      },
+      "productClassification": {
+        "type": "string",
+        "enum": [
+          "sawlog",
+          "pulpwood",
+          "biomass",
+          "chips",
+          "firewood",
+          "veneer_log",
+          "post_pole"
+        ],
+        "description": "Market classification or intended product use"
+      },
+      "qualityGrade": {
+        "type": "string",
+        "enum": [
+          "Grade-A",
+          "Grade-B",
+          "Grade-C",
+          "Grade-D",
+          "Premium",
+          "Standard",
+          "Economy",
+          "Utility",
+          "Structural",
+          "Non-structural",
+          "Fuel",
+          "Residue",
+          "Export",
+          "Domestic",
+          "Sawlog",
+          "Pulpwood",
+          "Biomass"
+        ],
+        "description": "Quality grade with comprehensive standard classification"
+      },
+      "physicalArrangement": {
+        "type": "object",
+        "description": "Spatial organization affecting collection and decomposition",
+        "properties": {
+          "arrangementType": {
+            "type": "string",
+            "enum": [
+              "scattered",
+              "piled",
+              "windrow",
+              "stacked",
+              "bundled",
+              "in_situ"
+            ],
+            "description": "Type of spatial arrangement"
+          },
+          "arrangementDate": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When material was arranged in this configuration"
+          },
+          "exposureConditions": {
+            "type": "string",
+            "enum": [
+              "covered",
+              "exposed",
+              "partially_covered"
+            ],
+            "description": "Protection from weather elements"
+          },
+          "groundContact": {
+            "type": "boolean",
+            "description": "Direct soil contact affects decomposition rate"
+          }
+        }
+      },
+      "alternativeFateMetrics": {
+        "type": "object",
+        "description": "LCA and BECCS analysis metrics for alternative fate assessment",
+        "properties": {
+          "baselineScenario": {
+            "type": "string",
+            "enum": [
+              "natural_decomposition",
+              "wildfire",
+              "prescribed_burn",
+              "mulching"
+            ],
+            "description": "Expected fate if material is not collected"
+          },
+          "annualDecayRate": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Estimated annual decomposition rate (percent per year) based on arrangement and conditions"
+          },
+          "collectionEfficiency": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Efficiency factor (0-1) for collecting material based on arrangement"
+          },
+          "carbonImpact": {
+            "type": "object",
+            "description": "Carbon-related impacts of the current arrangement",
+            "properties": {
+              "soilCarbonChange": {
+                "type": "number",
+                "description": "Change in soil carbon (tons CO2e) from current arrangement"
+              },
+              "emissionsAvoided": {
+                "type": "number",
+                "description": "Emissions avoided (tons CO2e) by collection vs baseline scenario"
+              }
+            }
+          }
+        }
+      },
+      "isMultiSpecies": {
+        "type": "boolean",
+        "description": "True if contains multiple species"
+      },
+      "attachedInformation": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "All data linked to this TRU"
+      },
+      "processingHistory": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^PH-[A-Z0-9-_]+$"
+        },
+        "description": "Complete processing chain references (Phase 2)"
+      },
+      "parentTraceableUnitId": {
+        "type": "string",
+        "pattern": "^TRU-[A-Z0-9-_]+$",
+        "description": "Foreign key to parent TraceableUnit for split/merge operations (Phase 2)"
+      },
+      "childTraceableUnitIds": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^TRU-[A-Z0-9-_]+$"
+        },
+        "description": "For split/merge operations (Phase 2)"
+      },
+      "currentStatus": {
+        "type": "string",
+        "enum": [
+          "active",
+          "processed",
+          "delivered",
+          "consumed"
+        ],
+        "description": "Current status of the TRU (Phase 2)"
+      },
+      "sustainabilityCertification": {
+        "type": "string",
+        "description": "FSC, PEFC, etc. claims (Phase 2)"
+      },
+      "mediaBreakFlags": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Points where data continuity was lost (Phase 2)"
+      },
+      "lastUpdated": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp of the most recent data update"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "traceableUnitId",
+      "unitType",
+      "uniqueIdentifier",
+      "identificationMethodId",
+      "identificationConfidence",
+      "totalVolumeM3",
+      "createdTimestamp",
+      "harvesterId",
+      "materialTypeId",
+      "isMultiSpecies",
+      "harvestGeographicDataId"
+    ]
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "traceableUnitId"
+        }
+      },
+      {
+        "!!": {
+          "var": "unitType"
+        }
+      },
+      {
+        "!!": {
+          "var": "uniqueIdentifier"
+        }
+      },
+      {
+        "!!": {
+          "var": "identificationMethodId"
+        }
+      },
+      {
+        "!!": {
+          "var": "identificationConfidence"
+        }
+      },
+      {
+        ">=": [
+          {
+            "var": "identificationConfidence"
+          },
+          30
+        ]
+      },
+      {
+        "!!": {
+          "var": "totalVolumeM3"
+        }
+      },
+      {
+        ">": [
+          {
+            "var": "totalVolumeM3"
+          },
+          0
+        ]
+      },
+      {
+        "!!": {
+          "var": "createdTimestamp"
+        }
+      },
+      {
+        "!!": {
+          "var": "harvesterId"
+        }
+      },
+      {
+        "!!": {
+          "var": "materialTypeId"
+        }
+      },
+      {
+        "if": [
+          {
+            "var": "isMultiSpecies"
+          },
+          {
+            "!!": {
+              "var": "currentGeographicDataId"
+            }
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "processingHistory"
+          },
+          {
+            ">": [
+              {
+                "var": "processingHistory.length"
+              },
+              0
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "childTraceableUnitIds"
+          },
+          {
+            ">": [
+              {
+                "var": "childTraceableUnitIds.length"
+              },
+              0
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "<": [
+              {
+                "var": "identificationConfidence"
+              },
+              70
+            ]
+          },
+          {
+            "if": [
+              {
+                "var": "secondaryIdentifiers"
+              },
+              {
+                ">": [
+                  {
+                    "var": "secondaryIdentifiers.length"
+                  },
+                  0
+                ]
+              },
+              false
+            ]
+          },
+          true
+        ]
+      },
+      {
+        "if": [
+          {
+            "var": "methodReadinessLevel"
+          },
+          {
+            ">=": [
+              {
+                "var": "methodReadinessLevel"
+              },
+              1
+            ]
+          },
+          true
+        ]
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "TraceableUnit",
+      "primaryKey": "traceableUnitId",
+      "area": "core_traceability",
+      "description": "CENTRAL: Unique biomass tracking unit with BOOST traceability system integration"
+    },
+    "relationships": [
+      {
+        "field": "currentGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "currently located at",
+        "example": "TRU-456 is currently located at 'Portland Mill Yard'"
+      },
+      {
+        "field": "harvestGeographicDataId",
+        "targetEntity": "GeographicData",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "harvested at",
+        "example": "TRU-123 was harvested at 'Olympic Forest Block 7A'"
+      },
+      {
+        "field": "harvesterId",
+        "targetEntity": "Organization",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "harvested by",
+        "example": "TRU-123 was harvested by 'West Coast Timber Co.'"
+      },
+      {
+        "field": "operatorId",
+        "targetEntity": "Operator",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "operated by",
+        "example": "TRU-789 was created by operator 'John Smith'"
+      },
+      {
+        "field": "materialTypeId",
+        "targetEntity": "Material",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "material type",
+        "example": "TRU-001 is classified as 'Douglas Fir Sawlog'"
+      },
+      {
+        "field": "parentTraceableUnitId",
+        "targetEntity": "TraceableUnit",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "derived from",
+        "example": "TRU-890 was derived from parent unit TRU-456"
+      },
+      {
+        "field": "identificationMethodId",
+        "targetEntity": "IdentificationMethod",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "identified using",
+        "example": "TRU-123 is identified using method IM-RFID-001"
+      }
+    ]
+  }
+}

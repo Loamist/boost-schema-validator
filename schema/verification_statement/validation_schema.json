@@ -1,0 +1,96 @@
+{
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://github.com/carbondirect/BOOST/schemas/verification-statement",
+    "type": "object",
+    "properties": {
+      "@context": {
+        "type": "object"
+      },
+      "@type": {
+        "type": "string",
+        "enum": [
+          "VerificationStatement"
+        ]
+      },
+      "@id": {
+        "type": "string",
+        "format": "uri"
+      },
+      "statementId": {
+        "type": "string",
+        "pattern": "^VS-[A-Z0-9-_]+$"
+      },
+      "verificationDate": {
+        "type": "string",
+        "format": "date"
+      },
+      "issuingBody": {
+        "type": "string",
+        "pattern": "^CB-[A-Z0-9-_]+$",
+        "description": "Foreign key to CertificationBody entity"
+      },
+      "scope": {
+        "type": "string"
+      },
+      "transactionBatchId": {
+        "type": "string",
+        "pattern": "^TB-[A-Z0-9-_]+$",
+        "description": "Foreign key to TransactionBatch entity"
+      }
+    },
+    "required": [
+      "@context",
+      "@type",
+      "@id",
+      "statementId",
+      "verificationDate",
+      "issuingBody"
+    ],
+    "title": "Verification Statement",
+    "description": "VerificationStatement entity in BOOST data model"
+  },
+  "rules": {
+    "and": [
+      {
+        "!!": {
+          "var": "statementId"
+        }
+      },
+      {
+        "!!": {
+          "var": "verificationDate"
+        }
+      },
+      {
+        "!!": {
+          "var": "issuingBody"
+        }
+      }
+    ]
+  },
+  "boost_metadata": {
+    "entity": {
+      "name": "VerificationStatement",
+      "primaryKey": "statementId",
+      "area": "measurement_verification",
+      "description": "Verification statements for certification compliance"
+    },
+    "relationships": [
+      {
+        "field": "transactionBatchId",
+        "targetEntity": "TransactionBatch",
+        "relationshipType": "many-to-one",
+        "required": false,
+        "label": "verifying"
+      },
+      {
+        "field": "issuingBody",
+        "targetEntity": "CertificationBody",
+        "relationshipType": "many-to-one",
+        "required": true,
+        "label": "issued by"
+      }
+    ]
+  }
+}

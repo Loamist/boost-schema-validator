@@ -1,0 +1,53 @@
+{
+  "@context": {
+    "LCFSReporting": "https://github.com/carbondirect/BOOST/schemas#LCFSReporting",
+    "reportingId": "https://github.com/carbondirect/BOOST/schemas#reportingId",
+    "regulatedEntityId": "https://github.com/carbondirect/BOOST/schemas#regulatedEntityId",
+    "reportingPeriod": "https://github.com/carbondirect/BOOST/schemas#reportingPeriod",
+    "totalFuelVolume": "https://github.com/carbondirect/BOOST/schemas#totalFuelVolume",
+    "totalCreditsGenerated": "https://github.com/carbondirect/BOOST/schemas#totalCreditsGenerated",
+    "totalDeficitsIncurred": "https://github.com/carbondirect/BOOST/schemas#totalDeficitsIncurred",
+    "netPosition": "https://github.com/carbondirect/BOOST/schemas#netPosition",
+    "complianceStatus": "https://github.com/carbondirect/BOOST/schemas#complianceStatus",
+    "submissionDate": "https://github.com/carbondirect/BOOST/schemas#submissionDate",
+    "pathwaySummary": "https://github.com/carbondirect/BOOST/schemas#pathwaySummary",
+    "id": "@id"
+  },
+  "@type": "LCFSReporting",
+  "@id": "https://github.com/carbondirect/BOOST/schemas/lcfs-reporting/LCFS-RPT-2025-Q2-MINIMAL",
+  "reportingId": "LCFS-RPT-2025-Q2-MINIMAL",
+  "regulatedEntityId": "ORG-PACIFIC-RENEWABLE-FUELS-001",
+  "reportingPeriod": "2025-Q2",
+  "totalFuelVolume": 5075000.0,
+  "totalCreditsGenerated": 54580477.10,
+  "totalDeficitsIncurred": 0.0,
+  "netPosition": 54580477.10,
+  "complianceStatus": "compliant",
+  "submissionDate": "2025-07-15T10:30:00Z",
+  "pathwaySummary": [
+    {
+      "pathwayId": "CA-RD-2025-LMR-001",
+      "transactionCount": 2,
+      "totalVolume": 1650000.0,
+      "creditsGenerated": 17995184.00
+    },
+    {
+      "pathwayId": "CA-RD-2025-AGR-001",
+      "transactionCount": 2,
+      "totalVolume": 2350000.0,
+      "creditsGenerated": 24886720.85
+    },
+    {
+      "pathwayId": "CA-RD-2025-GRW-001",
+      "transactionCount": 1,
+      "totalVolume": 650000.0,
+      "creditsGenerated": 7171332.25
+    },
+    {
+      "pathwayId": "CA-RD-2025-FHR-001",
+      "transactionCount": 1,
+      "totalVolume": 425000.0,
+      "creditsGenerated": 4527240.00
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "pathwayId": "CA-RD-2025-LMR-001",
+  "pathwayType": "Tier_1",
+  "feedstockCategory": "logging_and_mill_residue",
+  "fuelProduct": "renewable_diesel",
+  "facilityLocation": "Stockton, CA",
+  "carbonIntensity": 19.85,
+  "energyEconomyRatio": 1.0,
+  "certificationDate": "2025-01-15",
+  "expirationDate": "2028-01-15",
+  "verificationStatus": "active",
+  "caGreetVersion": "3.0",
+  "facilityCapacity": 50000000,
+  "processDescription": "Hydrotreated renewable diesel production from forest biomass feedstock using hydrogen from renewable electricity",
+  "geographicScope": "California"
+}
