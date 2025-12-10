@@ -93,27 +93,32 @@ const bioramFieldMetadata: Record<string, Record<string, FieldMetadata>> = {
     programVersion: {
       description: 'Applicable BioRAM program version (SB 859, SB 901, SB 1109)',
       source: 'California Legislature',
-      collectionMethod: 'Contract effective date determines version'
+      collectionMethod: 'Contract effective date determines version',
+      notes: 'SB 859 (2016), SB 901 (2018), SB 1109 (2018)'
     },
     applicableLegislation: {
       description: 'Specific legislation enabling this BioRAM pathway',
       source: 'California Public Resources Code',
-      collectionMethod: 'Legal/regulatory reference'
+      collectionMethod: 'Legal/regulatory reference',
+      notes: 'Multiple bills may apply to single contract'
     },
     compliancePriceMWh: {
       description: 'Contract price per MWh for delivered energy',
       source: 'BioRAM PPA (Power Purchase Agreement)',
-      collectionMethod: 'Contract pricing terms'
+      collectionMethod: 'Contract pricing terms',
+      notes: 'Typically $120-200/MWh for BioRAM contracts'
     },
     penaltyPriceMWh: {
       description: 'Penalty price if HHZ requirements not met',
       source: 'BioRAM contract penalty clause',
-      collectionMethod: 'Contract penalty provisions'
+      collectionMethod: 'Contract penalty provisions',
+      notes: 'Market-based penalty for non-compliance'
     },
     serviceTerritory: {
       description: 'IOU service territory (PG&E, SCE, or SDG&E)',
       source: 'BioRAM contract',
-      collectionMethod: 'Contract counterparty'
+      collectionMethod: 'Contract counterparty',
+      notes: 'Determines which IOU reviews compliance'
     },
     // BOOST-only fields (in BOOST but not used in BioRAM)
     pathwayId: {
@@ -230,12 +235,14 @@ const bioramFieldMetadata: Record<string, Record<string, FieldMetadata>> = {
     totalHhzDeliveredBDT: {
       description: 'Total HHZ-sourced biomass delivered in BDT',
       source: 'Delivery tickets with HHZ verification',
-      collectionMethod: 'Sum of verified HHZ deliveries'
+      collectionMethod: 'Sum of verified HHZ deliveries',
+      notes: 'Numerator for HHZ percentage calculation'
     },
     totalHhzUsageToDateBDT: {
       description: 'Cumulative HHZ fuel usage since contract start',
       source: 'Historical fuel records',
-      collectionMethod: 'Running total from all quarterly reports'
+      collectionMethod: 'Running total from all quarterly reports',
+      notes: 'Tracks progress toward contract commitments'
     },
     hhzTierBreakdown: {
       description: 'Breakdown of HHZ fuel by tier (Tier1, Tier2, NonHHZ)',
@@ -246,7 +253,8 @@ const bioramFieldMetadata: Record<string, Record<string, FieldMetadata>> = {
     serviceTerritory: {
       description: 'IOU service territory (PG&E, SCE, or SDG&E)',
       source: 'BioRAM contract',
-      collectionMethod: 'Contract counterparty'
+      collectionMethod: 'Contract counterparty',
+      notes: 'Determines which IOU reviews compliance'
     },
     // BOOST-only fields (in BOOST but not used in BioRAM)
     reportingId: {

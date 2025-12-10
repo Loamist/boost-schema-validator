@@ -4,7 +4,7 @@
     "bioram": "https://github.com/carbondirect/BOOST/contexts/bioram/"
   },
   "@type": "BioramPathway",
-  "fuelType": "forest_harvest_residue_hhz",
+  "fuelType": "forest_harvest_residual",
   "targetFacilityType": "biomass_power_plant",
   "geographicScope": "California_SRA",
   "fireHazardZoneEligibility": ["Tier1", "Tier2"],

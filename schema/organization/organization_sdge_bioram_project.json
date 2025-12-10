@@ -7,7 +7,7 @@
   "@id": "https://github.com/carbondirect/BOOST/schemas/organization/ORG-SIERRA-BIOMASS-ENERGY-001",
   "organizationId": "ORG-SIERRA-BIOMASS-ENERGY-001",
   "organizationName": "Sierra Biomass Energy LLC",
-  "organizationType": "bioram_facility",
+  "organizationType": "producer",
   "primaryGeographicDataId": "GEO-SIERRA-FACILITY-001",
   "operationalAreas": [
     "GEO-SIERRA-FACILITY-001",
@@ -16,7 +16,7 @@
   "contactEmail": "operations@sierrabiomass.com",
   "contactPhone": "+15595550123",
   "certifications": [
-    "CEC-RPS-2024-0847"
+    "CERT-CEC-RPS-2024-0847"
   ],
   "establishedDate": "2018-03-15",
   "taxId": "94-7654321",

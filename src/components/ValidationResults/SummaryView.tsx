@@ -17,6 +17,7 @@ const ERROR_TYPE_LABELS: Record<string, string> = {
   enum: 'Invalid Values',
   type: 'Type Errors',
   constraint: 'Constraint Violations',
+  additionalProperty: 'Extra Fields',
   other: 'Other Errors'
 }
 
@@ -350,27 +351,27 @@ function BioramSplitValidationView({
             </div>
           )}
 
-          {/* BOOST Errors - show missing BOOST-only fields */}
+          {/* BOOST Errors - show all missing BOOST fields in one list */}
           {!boostPassed && (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {boostOnlyStatus.missingBoostOnly.length > 0 && (
-                <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                  <p className="text-xs text-base-content/60 mb-2">Fields required by BOOST but not used in real BioRAM:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {boostOnlyStatus.missingBoostOnly.map(field => (
-                      <span key={field} className="badge badge-warning badge-sm">{field}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {result.errors.filter(e => !boostOnlyStatus.missingBoostOnly.some(f => e.message.includes(f))).map((error, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-warning/10 border border-warning/20 rounded-lg">
-                  <span className="badge badge-warning badge-sm mt-0.5">{error.type}</span>
-                  <div className="flex-1">
-                    <p className="text-sm">{error.message}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg">
+              <p className="text-xs text-base-content/60 mb-2">Fields required by BOOST:</p>
+              <div className="flex flex-wrap gap-1">
+                {/* Extract field names from validation errors */}
+                {result.errors.map((error, index) => {
+                  const fieldMatch = error.message.match(/Missing required field: '([^']+)'/)
+                  const fieldName = fieldMatch ? fieldMatch[1] : null
+                  if (fieldName) {
+                    return <span key={index} className="badge badge-warning badge-sm">{fieldName}</span>
+                  }
+                  return null
+                }).filter(Boolean)}
+                {/* Also include boostOnly fields that might not be in errors */}
+                {boostOnlyStatus.missingBoostOnly
+                  .filter(field => !result.errors.some(e => e.message.includes(`'${field}'`)))
+                  .map(field => (
+                    <span key={field} className="badge badge-warning badge-sm">{field}</span>
+                  ))}
+              </div>
             </div>
           )}
 
@@ -470,6 +471,8 @@ function ErrorItem({ error }: { error: ValidationError }) {
       case 'pattern':
       case 'format':
         return 'badge-warning'
+      case 'additionalProperty':
+        return 'badge-info'
       default:
         return 'badge-ghost'
     }

@@ -4,8 +4,8 @@
     "bioram": "https://github.com/carbondirect/BOOST/contexts/bioram/"
   },
   "@type": "BioramReporting",
-  "facilityEntityId": "SHERWOOD-BIOMASS-POWER-001",
-  "bioramContractId": "BR-PGE-2024-01-A",
+  "facilityEntityId": "ORG-SHERWOOD-BIOMASS-001",
+  "bioramContractId": "BR-RFO-2024-01-A",
   "reportingPeriod": "2025-Q3",
   "totalBiomassVolume": 3500.0,
   "totalEnergyGenerated": 2800.0,
