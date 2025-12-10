@@ -1,6 +1,6 @@
 // Validation types
 export interface ValidationError {
-  type: 'required' | 'type' | 'enum' | 'pattern' | 'format' | 'constraint' | 'other'
+  type: 'required' | 'type' | 'enum' | 'pattern' | 'format' | 'constraint' | 'additionalProperty' | 'other'
   field: string
   message: string
   expected?: unknown

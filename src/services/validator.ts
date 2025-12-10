@@ -33,6 +33,15 @@ function formatAjvError(error: ErrorObject): ValidationError {
       }
     }
 
+    case 'additionalProperties': {
+      const additionalProp = error.params.additionalProperty as string
+      return {
+        type: 'additionalProperty',
+        field: additionalProp,
+        message: `Field '${additionalProp}' is not defined in schema`
+      }
+    }
+
     case 'type': {
       const expectedType = error.params.type as string
       return {
@@ -125,6 +134,7 @@ function groupErrorsByType(errors: ValidationError[]): Record<string, Validation
     enum: [],
     type: [],
     constraint: [],
+    additionalProperty: [],
     other: []
   }
 
@@ -134,6 +144,28 @@ function groupErrorsByType(errors: ValidationError[]): Record<string, Validation
   }
 
   return groups
+}
+
+/**
+ * Consolidate additionalProperty errors into a single error
+ */
+function consolidateAdditionalPropertyErrors(errors: ValidationError[]): ValidationError[] {
+  const additionalPropErrors = errors.filter(e => e.type === 'additionalProperty')
+  const otherErrors = errors.filter(e => e.type !== 'additionalProperty')
+
+  if (additionalPropErrors.length === 0) {
+    return errors
+  }
+
+  // Consolidate into single error with all field names
+  const fieldNames = additionalPropErrors.map(e => e.field)
+  const consolidatedError: ValidationError = {
+    type: 'additionalProperty',
+    field: fieldNames.join(', '),
+    message: `${fieldNames.length} field${fieldNames.length > 1 ? 's' : ''} not defined in schema: ${fieldNames.join(', ')}`
+  }
+
+  return [...otherErrors, consolidatedError]
 }
 
 /**
@@ -163,8 +195,9 @@ export async function validateEntity(
       }
     }
 
-    // Format errors
-    const errors = (validate.errors || []).map(formatAjvError)
+    // Format errors and consolidate additionalProperty errors
+    const rawErrors = (validate.errors || []).map(formatAjvError)
+    const errors = consolidateAdditionalPropertyErrors(rawErrors)
     const errors_by_type = groupErrorsByType(errors)
 
     return {

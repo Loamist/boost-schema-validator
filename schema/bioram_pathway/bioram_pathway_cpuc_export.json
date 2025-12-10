@@ -1,0 +1,29 @@
+{
+  "@context": {
+    "boost": "https://github.com/carbondirect/BOOST/contexts/",
+    "bioram": "https://github.com/carbondirect/BOOST/contexts/bioram/"
+  },
+  "@type": "BioramPathway",
+  "fuelType": "forest_harvest_residual",
+  "targetFacilityType": "biomass_power_plant",
+  "geographicScope": "California_SRA",
+  "fireHazardZoneEligibility": ["Tier1", "Tier2"],
+  "eligibilityStatus": "active",
+  "sourceRegion": "Sierra Nevada - Fresno County",
+  "haulDistanceLimit": 75,
+  "seasonalAvailability": {
+    "peakSeason": "fire_season",
+    "availabilityFactor": 0.85
+  },
+  "hhzTier": "Tier1",
+  "hhzFuelRequirements": {
+    "minimumHhzPercentage": 0.80,
+    "minimumTier1Percentage": 0.60,
+    "sustainableForestryPercentage": 0.80
+  },
+  "programVersion": "SB_901",
+  "applicableLegislation": ["SB_859", "SB_901", "SB_1109"],
+  "compliancePriceMWh": 120.00,
+  "penaltyPriceMWh": 89.23,
+  "serviceTerritory": "PGE"
+}
